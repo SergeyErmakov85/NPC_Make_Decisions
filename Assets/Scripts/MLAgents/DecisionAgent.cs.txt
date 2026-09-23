@@ -1,0 +1,128 @@
+// DecisionAgent.cs — уровень B, обучение с подкреплением.
+//
+// !!! ЭТОТ ФАЙЛ ЛЕЖИТ С РАСШИРЕНИЕМ .cs.txt НАМЕРЕННО.
+// Пока пакет com.unity.ml-agents не установлен, строки using Unity.MLAgents...
+// не скомпилируются и вся сборка проекта упадёт. Поэтому:
+//   1) установите пакет ML-Agents (Часть 3 методички);
+//   2) переименуйте файл в DecisionAgent.cs;
+//   3) вернитесь в Unity и дождитесь перекомпиляции.
+//
+// Ключевая идея: действие агента — НЕ «идти влево/вправо», а ИНДЕКС СТРАТЕГИИ.
+// Тогда PPO решает ровно ту же задачу, что и MCDA (выбор альтернативы),
+// и сравнение двух политик корректно. Низкоуровневое исполнение остаётся
+// в StrategyExecutor и одинаково у обоих агентов.
+using Unity.MLAgents;
+using Unity.MLAgents.Actuators;
+using Unity.MLAgents.Sensors;
+using UnityEngine;
+
+namespace CorridorRisk {
+
+public class DecisionAgent : Agent {
+
+    [Header("Ссылки")]
+    [SerializeField] AgentState          state;
+    [SerializeField] StrategyExecutor    executor;
+    [SerializeField] DecisionPolicy      policy;     // нужен и для Heuristic, и для списка стратегий
+    [SerializeField] EpisodeManager      episodes;
+    [SerializeField] LevelGraph          graph;
+    [SerializeField] AgentMotor          motor;
+    [SerializeField] CorridorRiskBalance balance;
+
+    [Header("Веса награды — те же, что в MCDA (reward_weights.json)")]
+    public float wProgress = 0.30f;
+    public float wRisk     = 0.26f;
+    public float wTime     = 0.14f;
+    public float wSupply   = 0.15f;
+    public float wInfo     = 0.15f;
+
+    int   _episodeIndex;
+    float _prevDist;
+    int   _prevPickups, _prevPosts;
+
+    public override void Initialize() {
+        episodes.externalEpisodeControl = true;
+        executor.externalControl = true;
+    }
+
+    public override void OnEpisodeBegin() {
+        // Учебный план: фон угрозы задаётся из конфигурации mlagents-learn
+        episodes.useCurriculumAmbient = true;
+        episodes.curriculumAmbient =
+            Academy.Instance.EnvironmentParameters.GetWithDefault("threat_level", 0.2f);
+
+        episodes.StartEpisode(_episodeIndex++);
+        _prevDist    = state.Dist01;
+        _prevPickups = 0;
+        _prevPosts   = 0;
+    }
+
+    public override void CollectObservations(VectorSensor sensor) {
+        // 16 значений — ровно столько надо указать в Behavior Parameters → Space Size
+        sensor.AddObservation(state.Hp01);                                    // 1
+        sensor.AddObservation(state.Dist01);                                  // 2
+        sensor.AddObservation(state.Threat01);                                // 3
+        sensor.AddObservation(state.Res01);                                   // 4
+        sensor.AddObservation(state.Cover01);                                 // 5
+        sensor.AddObservation(Mathf.Clamp01(StepCount /
+                              Mathf.Max(1f, MaxStep)));                       // 6  сколько времени вышло
+        Vector2 goalDir = LevelRegistry.Goal != null
+            ? ((Vector2)(LevelRegistry.Goal.transform.position - state.transform.position)).normalized
+            : Vector2.zero;
+        sensor.AddObservation(goalDir);                                       // 7, 8
+        sensor.AddObservation(motor.Velocity / Mathf.Max(0.01f, balance.baseSpeed)); // 9, 10
+        sensor.AddOneHotObservation(policy.IndexOfStrategy(executor.CurrentStrategy),
+                                    policy.Strategies.Length);                // 11…16
+    }
+
+    public override void OnActionReceived(ActionBuffers actions) {
+        int idx = Mathf.Clamp(actions.DiscreteActions[0], 0, policy.Strategies.Length - 1);
+        executor.SetStrategyExternal(policy.Strategies[idx]);
+
+        AddReward(ShapedReward());
+
+        if (!episodes.IsActive) {                       // эпизод завершил EpisodeManager
+            switch (episodes.LastResult) {
+                case "SUCCESS": AddReward( 1.0f); break;
+                case "DEATH":   AddReward(-1.0f); break;
+                default:        AddReward(-0.5f); break;
+            }
+            EndEpisode();
+        }
+    }
+
+    /// Эвристика = MCDA-политика.
+    /// Это ключевой приём всей связки: одним переключателем Behavior Type
+    /// можно сравнить две политики в одной сцене и записать демонстрации (.demo)
+    /// для имитационного обучения.
+    public override void Heuristic(in ActionBuffers actionsOut) {
+        string a = policy.Decide(state.Hp01, state.Dist01, state.Threat01,
+                                 state.Res01, state.Cover01, out _);
+        var d = actionsOut.DiscreteActions;
+        d[0] = policy.IndexOfStrategy(a);
+    }
+
+    /// Награда, собранная из тех же пяти критериев, что и свёртка MCDA.
+    float ShapedReward() {
+        float r = 0f;
+        r += wProgress * (_prevDist - state.Dist01);               // продвижение
+        r -= wRisk     * (state.DamageTakenThisStep / balance.hpMax);
+        r -= wTime     * (1f / Mathf.Max(1f, MaxStep));
+        r += wSupply   * 0.10f * (Trig().PickupsCollected - _prevPickups);
+        r += wInfo     * 0.10f * (Trig().PostsVisited     - _prevPosts);
+
+        _prevDist    = state.Dist01;
+        _prevPickups = Trig().PickupsCollected;
+        _prevPosts   = Trig().PostsVisited;
+        state.ClearStepCounters();
+        return r;
+    }
+
+    AgentTriggers _trig;
+    AgentTriggers Trig() {
+        if (_trig == null) _trig = state.GetComponent<AgentTriggers>();
+        return _trig;
+    }
+}
+
+}

@@ -1,0 +1,11 @@
+{
+ "source": "MCDA base weights (AHP/expert)",
+ "weights": {
+  "progress": 0.3,
+  "risk": 0.26,
+  "time": 0.14,
+  "supply": 0.15,
+  "info": 0.15
+ },
+ "note": "Те же веса используются в свёртке MCDA и в shaped reward ML-Agents"
+}
