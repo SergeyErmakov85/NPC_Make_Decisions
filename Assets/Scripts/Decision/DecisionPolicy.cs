@@ -1,6 +1,6 @@
 // DecisionPolicy.cs — загрузка таблицы политики и запрос «состояние → стратегия».
 //
-// Весь «здравый смысл» путешественника (NPC) сосредоточен здесь, и он целиком объясним:
+// Весь «интеллект» NPC сосредоточен здесь, и он целиком объясним:
 // это таблица на 243 строки, посчитанная методом MCDA в ноутбуке.
 using System.Collections.Generic;
 using UnityEngine;
@@ -45,8 +45,8 @@ public class DecisionPolicy : MonoBehaviour {
         return i;
     }
 
-    public string StateKey(float energy, float dist, float weather, float supplies, float shelter) {
-        float[] v = { energy, dist, weather, supplies, shelter };
+    public string StateKey(float hp, float dist, float threat, float res, float cover) {
+        float[] v = { hp, dist, threat, res, cover };
         var parts = new string[_file.stateVars.Length];
         for (int i = 0; i < parts.Length; i++)
             parts[i] = Bin(_file.stateVars[i], Mathf.Clamp01(v[i])).ToString();
@@ -54,9 +54,9 @@ public class DecisionPolicy : MonoBehaviour {
     }
 
     /// Главный метод: состояние → код стратегии.
-    public string Decide(float energy, float dist, float weather, float supplies, float shelter,
+    public string Decide(float hp, float dist, float threat, float res, float cover,
                          out PolicyEntry entry) {
-        string key = StateKey(energy, dist, weather, supplies, shelter);
+        string key = StateKey(hp, dist, threat, res, cover);
         if (!_index.TryGetValue(key, out entry)) {
             Debug.LogWarning($"[DecisionPolicy] нет записи {key} → fallback {_file.fallback}");
             return _file.fallback;

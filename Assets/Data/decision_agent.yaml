@@ -35,8 +35,8 @@ behaviors:
     summary_freq: 10000
 
 environment_parameters:
-  # Curriculum (учебный план): начинаем с хорошей погоды и постепенно её ухудшаем
-  weather_level:
+  # Curriculum: начинаем с безопасной карты, постепенно поднимаем угрозу
+  threat_level:
     curriculum:
       - name: Easy
         completion_criteria:

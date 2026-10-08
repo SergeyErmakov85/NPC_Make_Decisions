@@ -1,4 +1,4 @@
-// AgentMotor.cs — ходьба путешественника по ломаной. Никакой физики: kinematic Rigidbody2D
+// AgentMotor.cs — движение по ломаной. Никакой физики: kinematic Rigidbody2D
 // и MovePosition, чтобы поведение было полностью детерминированным.
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,7 +30,7 @@ public class AgentMotor : MonoBehaviour {
         _path = path ?? new List<Vector2>();
         _speedMul = speedMultiplier;
         _leg = 0;
-        // Первая точка пути — ближайший узел, он может быть позади путешественника.
+        // Первая точка пути — ближайший узел, он может быть позади агента.
         // Пропускаем её, если мы уже фактически в ней.
         if (_path.Count > 0 && Vector2.Distance(_rb.position, _path[0]) < ArriveEps) _leg = 1;
     }
@@ -42,7 +42,7 @@ public class AgentMotor : MonoBehaviour {
 
         Vector2 target = _path[_leg];
         Vector2 pos = _rb.position;
-        float speed = balance.baseSpeed * _speedMul * state.SuppliesFactor;
+        float speed = balance.baseSpeed * _speedMul * state.AmmoFactor;
         float step = speed * Time.fixedDeltaTime;
 
         Vector2 delta = target - pos;
@@ -57,8 +57,8 @@ public class AgentMotor : MonoBehaviour {
         _rb.MovePosition(pos + dir * step);
         Velocity = dir * speed;
 
-        // Вода и еда расходуются тем быстрее, чем быстрее идёт путешественник.
-        state.supplies -= balance.kDrain * 0.01f * balance.suppliesMax * _speedMul * Time.fixedDeltaTime;
+        // Расход запаса пропорционален скорости.
+        state.ammo -= balance.kDrain * 0.01f * balance.ammoMax * _speedMul * Time.fixedDeltaTime;
     }
 
     void OnDrawGizmos() {

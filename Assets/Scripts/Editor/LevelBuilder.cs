@@ -1,6 +1,6 @@
 // LevelBuilder.cs — построение сцены из level_corridor_risk_2d.json.
 //
-// Расставлять 25 узлов и 17 участков (непогода и укрытия) руками бессмысленно: при первой же правке
+// Расставлять 25 узлов и 17 зон руками бессмысленно: при первой же правке
 // геометрии всё придётся переделывать. Этот скрипт читает тот же JSON,
 // который порождает level.py, поэтому расчётная модель и сцена
 // гарантированно не разойдутся.
@@ -45,10 +45,10 @@ public static class LevelBuilder {
         var circle = AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
 
         BuildWaypoints(root, data);
-        BuildWeatherZones(root, data, circle);
-        BuildShelterZones(root, data, circle);
-        BuildSupplyPoints(root, data, circle);
-        BuildViewpoints(root, data, circle);
+        BuildThreatZones(root, data, circle);
+        BuildCoverZones(root, data, circle);
+        BuildPickups(root, data, circle);
+        BuildPosts(root, data, circle);
         BuildSpecialZones(root, data, circle);
         BuildRouteLines(root, data);
         BuildBounds(root, data);
@@ -56,7 +56,7 @@ public static class LevelBuilder {
 
         Selection.activeGameObject = root;
         Debug.Log($"[LevelBuilder] уровень «{data.name}» построен: узлов {data.nodes.Length}, " +
-                  $"участков непогоды {data.weatherZones.Length}, участков укрытий {data.shelterZones.Length}");
+                  $"зон угрозы {data.threatZones.Length}, зон укрытий {data.coverZones.Length}");
     }
 
     // --- части уровня ----------------------------------------------------------
@@ -71,58 +71,58 @@ public static class LevelBuilder {
         }
     }
 
-    static void BuildWeatherZones(GameObject root, LevelFile d, Sprite circle) {
-        var parent = Child(root, "WeatherZones");
-        foreach (var z in d.weatherZones) {
+    static void BuildThreatZones(GameObject root, LevelFile d, Sprite circle) {
+        var parent = Child(root, "ThreatZones");
+        foreach (var z in d.threatZones) {
             var go = new GameObject(z.id);
             go.transform.SetParent(parent.transform);
             go.transform.position = new Vector3(z.x, z.y, 0f);
-            var c = go.AddComponent<WeatherZone>();
+            var c = go.AddComponent<ThreatZone>();
             c.id = z.id; c.rInner = z.rInner; c.rOuter = z.rOuter; c.intensity = z.intensity;
-            AddCircleVisual(go, circle, z.rOuter, new Color(0.25f, 0.40f, 0.75f, 0.10f), -1);   // сине-серые «тучи»
-            AddCircleVisual(go, circle, z.rInner, new Color(0.25f, 0.40f, 0.75f, 0.18f), -1);
+            AddCircleVisual(go, circle, z.rOuter, new Color(0.86f, 0.15f, 0.15f, 0.10f), -1);
+            AddCircleVisual(go, circle, z.rInner, new Color(0.86f, 0.15f, 0.15f, 0.16f), -1);
         }
     }
 
-    static void BuildShelterZones(GameObject root, LevelFile d, Sprite circle) {
-        var parent = Child(root, "ShelterZones");
-        foreach (var z in d.shelterZones) {
+    static void BuildCoverZones(GameObject root, LevelFile d, Sprite circle) {
+        var parent = Child(root, "CoverZones");
+        foreach (var z in d.coverZones) {
             var go = new GameObject(z.id);
             go.transform.SetParent(parent.transform);
             go.transform.position = new Vector3(z.x, z.y, 0f);
-            var c = go.AddComponent<ShelterZone>();
+            var c = go.AddComponent<CoverZone>();
             c.id = z.id; c.radius = z.radius; c.density = z.density;
             AddCircleVisual(go, circle, z.radius,
                             new Color(0.09f, 0.64f, 0.29f, 0.08f + 0.14f * z.density), -2);
         }
     }
 
-    static void BuildSupplyPoints(GameObject root, LevelFile d, Sprite circle) {
-        var parent = Child(root, "SupplyPoints");
-        foreach (var p in d.supplyPoints) {
+    static void BuildPickups(GameObject root, LevelFile d, Sprite circle) {
+        var parent = Child(root, "Pickups");
+        foreach (var p in d.pickups) {
             var go = new GameObject(p.id);
             go.transform.SetParent(parent.transform);
             go.transform.position = new Vector3(p.x, p.y, 0f);
-            var c = go.AddComponent<SupplyPoint>();
+            var c = go.AddComponent<Pickup>();
             c.id = p.id;
-            c.kind = p.kind == "berries" ? SupplyKind.Berries : SupplyKind.Spring;
+            c.kind = p.kind == "med" ? PickupKind.Med : PickupKind.Ammo;
             c.amount = p.amount;
             var col = go.AddComponent<CircleCollider2D>();
             col.isTrigger = true; col.radius = 1.5f;
             AddCircleVisual(go, circle, 1.2f,
-                            c.kind == SupplyKind.Spring
-                                ? new Color(0.20f, 0.70f, 1.00f, 0.95f)    // родник — голубой
-                                : new Color(0.75f, 0.20f, 0.55f, 0.95f), 2); // ягодник — брусничный
+                            c.kind == PickupKind.Ammo
+                                ? new Color(0.92f, 0.70f, 0.09f, 0.95f)
+                                : new Color(0.94f, 0.27f, 0.27f, 0.95f), 2);
         }
     }
 
-    static void BuildViewpoints(GameObject root, LevelFile d, Sprite circle) {
-        var parent = Child(root, "Viewpoints");
-        foreach (var o in d.viewpoints) {
+    static void BuildPosts(GameObject root, LevelFile d, Sprite circle) {
+        var parent = Child(root, "ObservationPosts");
+        foreach (var o in d.observationPosts) {
             var go = new GameObject(o.id);
             go.transform.SetParent(parent.transform);
             go.transform.position = new Vector3(o.x, o.y, 0f);
-            go.AddComponent<Viewpoint>().id = o.id;
+            go.AddComponent<ObservationPost>().id = o.id;
             var col = go.AddComponent<CircleCollider2D>();
             col.isTrigger = true; col.radius = 1.5f;
             AddCircleVisual(go, circle, 1.1f, new Color(0.55f, 0.36f, 0.96f, 0.95f), 2);
@@ -130,24 +130,24 @@ public static class LevelBuilder {
     }
 
     static void BuildSpecialZones(GameObject root, LevelFile d, Sprite circle) {
-        var camp = new GameObject("CampZone");                 // стоянка с костром — место старта
-        camp.transform.SetParent(root.transform);
-        camp.transform.position = new Vector3(d.campZone.x, d.campZone.y, 0f);
-        camp.AddComponent<CampZone>().radius = d.campZone.radius;
-        AddCircleVisual(camp, circle, d.campZone.radius, new Color(0.95f, 0.60f, 0.20f, 0.14f), -2);
+        var safe = new GameObject("SafeZone");
+        safe.transform.SetParent(root.transform);
+        safe.transform.position = new Vector3(d.safeZone.x, d.safeZone.y, 0f);
+        safe.AddComponent<SafeZone>().radius = d.safeZone.radius;
+        AddCircleVisual(safe, circle, d.safeZone.radius, new Color(0.23f, 0.51f, 0.96f, 0.12f), -2);
 
-        var hut = new GameObject("HutZone");                   // горный приют — цель похода
-        hut.transform.SetParent(root.transform);
-        hut.transform.position = new Vector3(d.hutZone.x, d.hutZone.y, 0f);
-        hut.AddComponent<HutZone>().radius = d.hutZone.radius;
-        AddCircleVisual(hut, circle, d.hutZone.radius, new Color(0.13f, 0.77f, 0.37f, 0.55f), 0);
+        var goal = new GameObject("GoalZone");
+        goal.transform.SetParent(root.transform);
+        goal.transform.position = new Vector3(d.goalZone.x, d.goalZone.y, 0f);
+        goal.AddComponent<GoalZone>().radius = d.goalZone.radius;
+        AddCircleVisual(goal, circle, d.goalZone.radius, new Color(0.13f, 0.77f, 0.37f, 0.55f), 0);
     }
 
     static void BuildRouteLines(GameObject root, LevelFile d) {
         var parent = Child(root, "Routes");
-        DrawRoute(parent, "Route_A", d.routes.A, d, new Color(0.06f, 0.65f, 0.91f));   // лесная тропа
-        DrawRoute(parent, "Route_B", d.routes.B, d, new Color(0.96f, 0.62f, 0.07f));   // тропа мимо родников
-        DrawRoute(parent, "Route_C", d.routes.C, d, new Color(0.94f, 0.27f, 0.27f));   // открытый склон
+        DrawRoute(parent, "Route_A", d.routes.A, d, new Color(0.06f, 0.65f, 0.91f));
+        DrawRoute(parent, "Route_B", d.routes.B, d, new Color(0.96f, 0.62f, 0.07f));
+        DrawRoute(parent, "Route_C", d.routes.C, d, new Color(0.94f, 0.27f, 0.27f));
     }
 
     static void DrawRoute(GameObject parent, string name, string[] ids, LevelFile d, Color color) {
@@ -192,7 +192,7 @@ public static class LevelBuilder {
         cam.orthographic = true;
         cam.orthographicSize = 21f;
         cam.transform.position = new Vector3(0f, 0f, -10f);
-        cam.backgroundColor = new Color(0.86f, 0.90f, 0.80f);   // светлый «луговой» фон
+        cam.backgroundColor = new Color(0.07f, 0.09f, 0.13f);
     }
 
     // --- утилиты ---------------------------------------------------------------
