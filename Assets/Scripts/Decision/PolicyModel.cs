@@ -1,5 +1,5 @@
 // PolicyModel.cs — контейнеры для разбора policy_unity.json,
-// который порождает ноутбук MCDA_Agent_Policy_Unity_v1.ipynb.
+// который порождает ноутбук MCDA_Agent_Policy_Unity_v3.ipynb.
 //
 // Файл специально сделан «плоским» (только массивы), чтобы читался
 // штатным UnityEngine.JsonUtility без сторонних JSON-библиотек.
@@ -9,7 +9,7 @@ namespace CorridorRisk {
 
 [Serializable]
 public class PolicyEntry {
-    public string  key;          // "hp|dist|threat|res|cover", например "0|2|2|1|1"
+    public string  key;          // "energy|dist|weather|supplies|shelter", например "0|2|2|1|1"
     public string  strategy;
     public string  runnerUp;
     public float   margin;

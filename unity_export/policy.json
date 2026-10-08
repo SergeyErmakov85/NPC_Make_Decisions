@@ -1,6 +1,6 @@
 {
  "schemaVersion": "1.0",
- "generatedAt": "2026-09-25T16:37:38",
+ "generatedAt": "2026-10-08T17:04:51",
  "method": "TOPSIS",
  "course": "Математические и инструментальные методы поддержки принятия решений",
  "strategies": [
@@ -23,70 +23,119 @@
  "criteria": [
   {
    "name": "progress",
+   "label": "Продвижение к приюту",
    "direction": "max",
    "baseWeight": 0.3
   },
   {
    "name": "risk",
+   "label": "Риск неприятностей",
    "direction": "min",
    "baseWeight": 0.26
   },
   {
    "name": "time",
+   "label": "Затраты времени",
    "direction": "min",
    "baseWeight": 0.14
   },
   {
    "name": "supply",
+   "label": "Восстановление",
    "direction": "max",
    "baseWeight": 0.15
   },
   {
    "name": "info",
+   "label": "Знание местности",
    "direction": "max",
    "baseWeight": 0.15
   }
  ],
- "edges": [
-  {
-   "varName": "energy",
-   "values": [
+ "stateBins": {
+  "energy": {
+   "representatives": [
+    0.25,
+    0.6,
+    0.95
+   ],
+   "edges": [
     0.425,
     0.775
+   ],
+   "names": [
+    "мало",
+    "средне",
+    "много"
    ]
   },
-  {
-   "varName": "dist",
-   "values": [
+  "dist": {
+   "representatives": [
+    0.2,
+    0.5,
+    0.85
+   ],
+   "edges": [
     0.35,
     0.675
+   ],
+   "names": [
+    "близко",
+    "средне",
+    "далеко"
    ]
   },
-  {
-   "varName": "weather",
-   "values": [
+  "weather": {
+   "representatives": [
+    0.1,
+    0.5,
+    0.9
+   ],
+   "edges": [
     0.3,
     0.7
+   ],
+   "names": [
+    "ясно",
+    "переменно",
+    "ненастье"
    ]
   },
-  {
-   "varName": "supplies",
-   "values": [
+  "supplies": {
+   "representatives": [
+    0.2,
+    0.6,
+    1.0
+   ],
+   "edges": [
     0.4,
     0.8
+   ],
+   "names": [
+    "мало",
+    "средне",
+    "полный"
    ]
   },
-  {
-   "varName": "shelter",
-   "values": [
+  "shelter": {
+   "representatives": [
+    0.2,
+    0.5,
+    0.8
+   ],
+   "edges": [
     0.35,
     0.65
+   ],
+   "names": [
+    "открыто",
+    "средне",
+    "много"
    ]
   }
- ],
- "entries": [
-  {
-   "key": "0|0|0|0|0",
+ },
+ "entries": {
+  "0|0|0|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00719,
@@ -100,8 +149,7 @@
     0.55258
    ]
   },
-  {
-   "key": "0|0|0|0|1",
+  "0|0|0|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.01383,
@@ -115,8 +163,7 @@
     0.56208
    ]
   },
-  {
-   "key": "0|0|0|0|2",
+  "0|0|0|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.01332,
@@ -130,8 +177,7 @@
     0.5644
    ]
   },
-  {
-   "key": "0|0|0|1|0",
+  "0|0|0|1|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00864,
@@ -145,8 +191,7 @@
     0.51066
    ]
   },
-  {
-   "key": "0|0|0|1|1",
+  "0|0|0|1|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.02534,
@@ -160,8 +205,7 @@
     0.52288
    ]
   },
-  {
-   "key": "0|0|0|1|2",
+  "0|0|0|1|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.02891,
@@ -175,8 +219,7 @@
     0.52711
    ]
   },
-  {
-   "key": "0|0|0|2|0",
+  "0|0|0|2|0": {
    "strategy": "RETURN",
    "runnerUp": "SHELTERED",
    "margin": 0.00195,
@@ -190,8 +233,7 @@
     0.49371
    ]
   },
-  {
-   "key": "0|0|0|2|1",
+  "0|0|0|2|1": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.03143,
@@ -205,8 +247,7 @@
     0.50604
    ]
   },
-  {
-   "key": "0|0|0|2|2",
+  "0|0|0|2|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04978,
@@ -220,8 +261,7 @@
     0.50833
    ]
   },
-  {
-   "key": "0|0|1|0|0",
+  "0|0|1|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00073,
@@ -235,8 +275,7 @@
     0.54313
    ]
   },
-  {
-   "key": "0|0|1|0|1",
+  "0|0|1|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.01044,
@@ -250,8 +289,7 @@
     0.56003
    ]
   },
-  {
-   "key": "0|0|1|0|2",
+  "0|0|1|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "WAIT",
    "margin": 0.00833,
@@ -265,8 +303,7 @@
     0.57526
    ]
   },
-  {
-   "key": "0|0|1|1|0",
+  "0|0|1|1|0": {
    "strategy": "RETURN",
    "runnerUp": "SHELTERED",
    "margin": 0.00814,
@@ -280,8 +317,7 @@
     0.50265
    ]
   },
-  {
-   "key": "0|0|1|1|1",
+  "0|0|1|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.03864,
@@ -295,8 +331,7 @@
     0.52327
    ]
   },
-  {
-   "key": "0|0|1|1|2",
+  "0|0|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.06242,
@@ -310,8 +345,7 @@
     0.54236
    ]
   },
-  {
-   "key": "0|0|1|2|0",
+  "0|0|1|2|0": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.017,
@@ -325,8 +359,7 @@
     0.48935
    ]
   },
-  {
-   "key": "0|0|1|2|1",
+  "0|0|1|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.08196,
@@ -340,8 +373,7 @@
     0.51147
    ]
   },
-  {
-   "key": "0|0|1|2|2",
+  "0|0|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.11293,
@@ -355,8 +387,7 @@
     0.53212
    ]
   },
-  {
-   "key": "0|0|2|0|0",
+  "0|0|2|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.00365,
@@ -370,8 +401,7 @@
     0.53943
    ]
   },
-  {
-   "key": "0|0|2|0|1",
+  "0|0|2|0|1": {
    "strategy": "WAIT",
    "runnerUp": "SURVEY",
    "margin": 0.00754,
@@ -385,8 +415,7 @@
     0.56409
    ]
   },
-  {
-   "key": "0|0|2|0|2",
+  "0|0|2|0|2": {
    "strategy": "WAIT",
    "runnerUp": "SHELTERED",
    "margin": 0.00773,
@@ -400,8 +429,7 @@
     0.58339
    ]
   },
-  {
-   "key": "0|0|2|1|0",
+  "0|0|2|1|0": {
    "strategy": "RETURN",
    "runnerUp": "SHELTERED",
    "margin": 0.01222,
@@ -415,8 +443,7 @@
     0.50611
    ]
   },
-  {
-   "key": "0|0|2|1|1",
+  "0|0|2|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.06049,
@@ -430,8 +457,7 @@
     0.53229
    ]
   },
-  {
-   "key": "0|0|2|1|2",
+  "0|0|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.08872,
@@ -445,8 +471,7 @@
     0.55213
    ]
   },
-  {
-   "key": "0|0|2|2|0",
+  "0|0|2|2|0": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.01626,
@@ -460,8 +485,7 @@
     0.4985
    ]
   },
-  {
-   "key": "0|0|2|2|1",
+  "0|0|2|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.09607,
@@ -475,8 +499,7 @@
     0.52293
    ]
   },
-  {
-   "key": "0|0|2|2|2",
+  "0|0|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.14348,
@@ -490,8 +513,7 @@
     0.54427
    ]
   },
-  {
-   "key": "0|1|0|0|0",
+  "0|1|0|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.02191,
@@ -505,8 +527,7 @@
     0.58121
    ]
   },
-  {
-   "key": "0|1|0|0|1",
+  "0|1|0|0|1": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.01466,
@@ -520,8 +541,7 @@
     0.59009
    ]
   },
-  {
-   "key": "0|1|0|0|2",
+  "0|1|0|0|2": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.01307,
@@ -535,8 +555,7 @@
     0.5909
    ]
   },
-  {
-   "key": "0|1|0|1|0",
+  "0|1|0|1|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00238,
@@ -550,8 +569,7 @@
     0.54691
    ]
   },
-  {
-   "key": "0|1|0|1|1",
+  "0|1|0|1|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.01709,
@@ -565,8 +583,7 @@
     0.55845
    ]
   },
-  {
-   "key": "0|1|0|1|2",
+  "0|1|0|1|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.02032,
@@ -580,8 +597,7 @@
     0.5607
    ]
   },
-  {
-   "key": "0|1|0|2|0",
+  "0|1|0|2|0": {
    "strategy": "SURVEY",
    "runnerUp": "RETURN",
    "margin": 0.00309,
@@ -595,8 +611,7 @@
     0.53253
    ]
   },
-  {
-   "key": "0|1|0|2|1",
+  "0|1|0|2|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04545,
@@ -610,8 +625,7 @@
     0.54432
    ]
   },
-  {
-   "key": "0|1|0|2|2",
+  "0|1|0|2|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04878,
@@ -625,8 +639,7 @@
     0.54428
    ]
   },
-  {
-   "key": "0|1|1|0|0",
+  "0|1|1|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.03093,
@@ -640,8 +653,7 @@
     0.57518
    ]
   },
-  {
-   "key": "0|1|1|0|1",
+  "0|1|1|0|1": {
    "strategy": "GATHER",
    "runnerUp": "WAIT",
    "margin": 0.00115,
@@ -655,8 +667,7 @@
     0.59138
    ]
   },
-  {
-   "key": "0|1|1|0|2",
+  "0|1|1|0|2": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.01653,
@@ -670,8 +681,7 @@
     0.60576
    ]
   },
-  {
-   "key": "0|1|1|1|0",
+  "0|1|1|1|0": {
    "strategy": "RETURN",
    "runnerUp": "WAIT",
    "margin": 0.02529,
@@ -685,8 +695,7 @@
     0.54184
    ]
   },
-  {
-   "key": "0|1|1|1|1",
+  "0|1|1|1|1": {
    "strategy": "WAIT",
    "runnerUp": "SHELTERED",
    "margin": 0.01211,
@@ -700,8 +709,7 @@
     0.56181
    ]
   },
-  {
-   "key": "0|1|1|1|2",
+  "0|1|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.0112,
@@ -715,8 +723,7 @@
     0.57995
    ]
   },
-  {
-   "key": "0|1|1|2|0",
+  "0|1|1|2|0": {
    "strategy": "RETURN",
    "runnerUp": "SHELTERED",
    "margin": 0.03094,
@@ -730,8 +737,7 @@
     0.53113
    ]
   },
-  {
-   "key": "0|1|1|2|1",
+  "0|1|1|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.03224,
@@ -745,8 +751,7 @@
     0.55276
    ]
   },
-  {
-   "key": "0|1|1|2|2",
+  "0|1|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.06,
@@ -760,8 +765,7 @@
     0.57255
    ]
   },
-  {
-   "key": "0|1|2|0|0",
+  "0|1|2|0|0": {
    "strategy": "GATHER",
    "runnerUp": "RETURN",
    "margin": 0.00935,
@@ -775,8 +779,7 @@
     0.57441
    ]
   },
-  {
-   "key": "0|1|2|0|1",
+  "0|1|2|0|1": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.02306,
@@ -790,8 +793,7 @@
     0.59819
    ]
   },
-  {
-   "key": "0|1|2|0|2",
+  "0|1|2|0|2": {
    "strategy": "WAIT",
    "runnerUp": "SHELTERED",
    "margin": 0.0491,
@@ -805,8 +807,7 @@
     0.61652
    ]
   },
-  {
-   "key": "0|1|2|1|0",
+  "0|1|2|1|0": {
    "strategy": "RETURN",
    "runnerUp": "GATHER",
    "margin": 0.05117,
@@ -820,8 +821,7 @@
     0.54775
    ]
   },
-  {
-   "key": "0|1|2|1|1",
+  "0|1|2|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.01387,
@@ -835,8 +835,7 @@
     0.57319
    ]
   },
-  {
-   "key": "0|1|2|1|2",
+  "0|1|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.04015,
@@ -850,8 +849,7 @@
     0.59209
    ]
   },
-  {
-   "key": "0|1|2|2|0",
+  "0|1|2|2|0": {
    "strategy": "RETURN",
    "runnerUp": "SHELTERED",
    "margin": 0.03135,
@@ -865,8 +863,7 @@
     0.54276
    ]
   },
-  {
-   "key": "0|1|2|2|1",
+  "0|1|2|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.05031,
@@ -880,8 +877,7 @@
     0.56664
    ]
   },
-  {
-   "key": "0|1|2|2|2",
+  "0|1|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.09472,
@@ -895,8 +891,7 @@
     0.58712
    ]
   },
-  {
-   "key": "0|2|0|0|0",
+  "0|2|0|0|0": {
    "strategy": "GATHER",
    "runnerUp": "WAIT",
    "margin": 0.0482,
@@ -910,8 +905,7 @@
     0.61095
    ]
   },
-  {
-   "key": "0|2|0|0|1",
+  "0|2|0|0|1": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.04722,
@@ -925,8 +919,7 @@
     0.61874
    ]
   },
-  {
-   "key": "0|2|0|0|2",
+  "0|2|0|0|2": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.04288,
@@ -940,8 +933,7 @@
     0.61741
    ]
   },
-  {
-   "key": "0|2|0|1|0",
+  "0|2|0|1|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.00779,
@@ -955,8 +947,7 @@
     0.58869
    ]
   },
-  {
-   "key": "0|2|0|1|1",
+  "0|2|0|1|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00367,
@@ -970,8 +961,7 @@
     0.59872
    ]
   },
-  {
-   "key": "0|2|0|1|2",
+  "0|2|0|1|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00706,
@@ -985,8 +975,7 @@
     0.59773
    ]
   },
-  {
-   "key": "0|2|0|2|0",
+  "0|2|0|2|0": {
    "strategy": "SURVEY",
    "runnerUp": "RETURN",
    "margin": 0.01816,
@@ -1000,8 +989,7 @@
     0.57873
    ]
   },
-  {
-   "key": "0|2|0|2|1",
+  "0|2|0|2|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04368,
@@ -1015,8 +1003,7 @@
     0.58903
    ]
   },
-  {
-   "key": "0|2|0|2|2",
+  "0|2|0|2|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04661,
@@ -1030,8 +1017,7 @@
     0.58508
    ]
   },
-  {
-   "key": "0|2|1|0|0",
+  "0|2|1|0|0": {
    "strategy": "GATHER",
    "runnerUp": "WAIT",
    "margin": 0.0285,
@@ -1045,8 +1031,7 @@
     0.61205
    ]
   },
-  {
-   "key": "0|2|1|0|1",
+  "0|2|1|0|1": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.00383,
@@ -1060,8 +1045,7 @@
     0.62689
    ]
   },
-  {
-   "key": "0|2|1|0|2",
+  "0|2|1|0|2": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.02174,
@@ -1075,8 +1059,7 @@
     0.63976
    ]
   },
-  {
-   "key": "0|2|1|1|0",
+  "0|2|1|1|0": {
    "strategy": "RETURN",
    "runnerUp": "WAIT",
    "margin": 0.02035,
@@ -1090,8 +1073,7 @@
     0.59067
    ]
   },
-  {
-   "key": "0|2|1|1|1",
+  "0|2|1|1|1": {
    "strategy": "WAIT",
    "runnerUp": "RETURN",
    "margin": 0.02328,
@@ -1105,8 +1087,7 @@
     0.60896
    ]
   },
-  {
-   "key": "0|2|1|1|2",
+  "0|2|1|1|2": {
    "strategy": "WAIT",
    "runnerUp": "SURVEY",
    "margin": 0.04551,
@@ -1120,8 +1101,7 @@
     0.62518
    ]
   },
-  {
-   "key": "0|2|1|2|0",
+  "0|2|1|2|0": {
    "strategy": "RETURN",
    "runnerUp": "WAIT",
    "margin": 0.04071,
@@ -1135,8 +1115,7 @@
     0.58478
    ]
   },
-  {
-   "key": "0|2|1|2|1",
+  "0|2|1|2|1": {
    "strategy": "WAIT",
    "runnerUp": "RETURN",
    "margin": 0.00917,
@@ -1150,8 +1129,7 @@
     0.6048
    ]
   },
-  {
-   "key": "0|2|1|2|2",
+  "0|2|1|2|2": {
    "strategy": "WAIT",
    "runnerUp": "SHELTERED",
    "margin": 0.01049,
@@ -1165,8 +1143,7 @@
     0.62267
    ]
   },
-  {
-   "key": "0|2|2|0|0",
+  "0|2|2|0|0": {
    "strategy": "GATHER",
    "runnerUp": "RETURN",
    "margin": 0.00071,
@@ -1180,8 +1157,7 @@
     0.61729
    ]
   },
-  {
-   "key": "0|2|2|0|1",
+  "0|2|2|0|1": {
    "strategy": "WAIT",
    "runnerUp": "RETURN",
    "margin": 0.03546,
@@ -1195,8 +1171,7 @@
     0.63925
    ]
   },
-  {
-   "key": "0|2|2|0|2",
+  "0|2|2|0|2": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.0636,
@@ -1210,8 +1185,7 @@
     0.6558
    ]
   },
-  {
-   "key": "0|2|2|1|0",
+  "0|2|2|1|0": {
    "strategy": "RETURN",
    "runnerUp": "GATHER",
    "margin": 0.05561,
@@ -1225,8 +1199,7 @@
     0.60226
    ]
   },
-  {
-   "key": "0|2|2|1|1",
+  "0|2|2|1|1": {
    "strategy": "WAIT",
    "runnerUp": "RETURN",
    "margin": 0.00816,
@@ -1240,8 +1213,7 @@
     0.62571
    ]
   },
-  {
-   "key": "0|2|2|1|2",
+  "0|2|2|1|2": {
    "strategy": "WAIT",
    "runnerUp": "SHELTERED",
    "margin": 0.02408,
@@ -1255,8 +1227,7 @@
     0.64265
    ]
   },
-  {
-   "key": "0|2|2|2|0",
+  "0|2|2|2|0": {
    "strategy": "RETURN",
    "runnerUp": "WAIT",
    "margin": 0.07738,
@@ -1270,8 +1241,7 @@
     0.60234
    ]
   },
-  {
-   "key": "0|2|2|2|1",
+  "0|2|2|2|1": {
    "strategy": "RETURN",
    "runnerUp": "WAIT",
    "margin": 0.00728,
@@ -1285,8 +1255,7 @@
     0.62444
    ]
   },
-  {
-   "key": "0|2|2|2|2",
+  "0|2|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.02724,
@@ -1300,8 +1269,7 @@
     0.64301
    ]
   },
-  {
-   "key": "1|0|0|0|0",
+  "1|0|0|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04178,
@@ -1315,8 +1283,7 @@
     0.45814
    ]
   },
-  {
-   "key": "1|0|0|0|1",
+  "1|0|0|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.05175,
@@ -1330,8 +1297,7 @@
     0.46841
    ]
   },
-  {
-   "key": "1|0|0|0|2",
+  "1|0|0|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.05333,
@@ -1345,8 +1311,7 @@
     0.46939
    ]
   },
-  {
-   "key": "1|0|0|1|0",
+  "1|0|0|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.05287,
@@ -1360,8 +1325,7 @@
     0.40362
    ]
   },
-  {
-   "key": "1|0|0|1|1",
+  "1|0|0|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.00783,
@@ -1375,8 +1339,7 @@
     0.415
    ]
   },
-  {
-   "key": "1|0|0|1|2",
+  "1|0|0|1|2": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.01185,
@@ -1390,8 +1353,7 @@
     0.41517
    ]
   },
-  {
-   "key": "1|0|0|2|0",
+  "1|0|0|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.09414,
@@ -1405,8 +1367,7 @@
     0.3724
    ]
   },
-  {
-   "key": "1|0|0|2|1",
+  "1|0|0|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.03154,
@@ -1420,8 +1381,7 @@
     0.38061
    ]
   },
-  {
-   "key": "1|0|0|2|2",
+  "1|0|0|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.00711,
@@ -1435,8 +1395,7 @@
     0.37268
    ]
   },
-  {
-   "key": "1|0|1|0|0",
+  "1|0|1|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.03177,
@@ -1450,8 +1409,7 @@
     0.46044
    ]
   },
-  {
-   "key": "1|0|1|0|1",
+  "1|0|1|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.03935,
@@ -1465,8 +1423,7 @@
     0.47816
    ]
   },
-  {
-   "key": "1|0|1|0|2",
+  "1|0|1|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.01792,
@@ -1480,8 +1437,7 @@
     0.49432
    ]
   },
-  {
-   "key": "1|0|1|1|0",
+  "1|0|1|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.04245,
@@ -1495,8 +1451,7 @@
     0.41229
    ]
   },
-  {
-   "key": "1|0|1|1|1",
+  "1|0|1|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.05763,
@@ -1510,8 +1465,7 @@
     0.43323
    ]
   },
-  {
-   "key": "1|0|1|1|2",
+  "1|0|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.14838,
@@ -1525,8 +1479,7 @@
     0.4529
    ]
   },
-  {
-   "key": "1|0|1|2|0",
+  "1|0|1|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.06271,
@@ -1540,8 +1493,7 @@
     0.39276
    ]
   },
-  {
-   "key": "1|0|1|2|1",
+  "1|0|1|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.04919,
@@ -1555,8 +1507,7 @@
     0.41477
    ]
   },
-  {
-   "key": "1|0|1|2|2",
+  "1|0|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.16005,
@@ -1570,8 +1521,7 @@
     0.43565
    ]
   },
-  {
-   "key": "1|0|2|0|0",
+  "1|0|2|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.02834,
@@ -1585,8 +1535,7 @@
     0.47533
    ]
   },
-  {
-   "key": "1|0|2|0|1",
+  "1|0|2|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.02031,
@@ -1600,8 +1549,7 @@
     0.49521
    ]
   },
-  {
-   "key": "1|0|2|0|2",
+  "1|0|2|0|2": {
    "strategy": "SHELTERED",
    "runnerUp": "SURVEY",
    "margin": 0.03066,
@@ -1615,8 +1563,7 @@
     0.512
    ]
   },
-  {
-   "key": "1|0|2|1|0",
+  "1|0|2|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.02409,
@@ -1630,8 +1577,7 @@
     0.43025
    ]
   },
-  {
-   "key": "1|0|2|1|1",
+  "1|0|2|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.09042,
@@ -1645,8 +1591,7 @@
     0.45363
    ]
   },
-  {
-   "key": "1|0|2|1|2",
+  "1|0|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.15994,
@@ -1660,8 +1605,7 @@
     0.47401
    ]
   },
-  {
-   "key": "1|0|2|2|0",
+  "1|0|2|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.03723,
@@ -1675,8 +1619,7 @@
     0.41507
    ]
   },
-  {
-   "key": "1|0|2|2|1",
+  "1|0|2|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.09039,
@@ -1690,8 +1633,7 @@
     0.43985
    ]
   },
-  {
-   "key": "1|0|2|2|2",
+  "1|0|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.20335,
@@ -1705,8 +1647,7 @@
     0.4616
    ]
   },
-  {
-   "key": "1|1|0|0|0",
+  "1|1|0|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00864,
@@ -1720,8 +1661,7 @@
     0.48906
    ]
   },
-  {
-   "key": "1|1|0|0|1",
+  "1|1|0|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.02034,
@@ -1735,8 +1675,7 @@
     0.49911
    ]
   },
-  {
-   "key": "1|1|0|0|2",
+  "1|1|0|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.0246,
@@ -1750,8 +1689,7 @@
     0.4987
    ]
   },
-  {
-   "key": "1|1|0|1|0",
+  "1|1|0|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SURVEY",
    "margin": 0.0017,
@@ -1765,8 +1703,7 @@
     0.44089
    ]
   },
-  {
-   "key": "1|1|0|1|1",
+  "1|1|0|1|1": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.0381,
@@ -1780,8 +1717,7 @@
     0.45224
    ]
   },
-  {
-   "key": "1|1|0|1|2",
+  "1|1|0|1|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.05485,
@@ -1795,8 +1731,7 @@
     0.45053
    ]
   },
-  {
-   "key": "1|1|0|2|0",
+  "1|1|0|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.05716,
@@ -1810,8 +1745,7 @@
     0.41108
    ]
   },
-  {
-   "key": "1|1|0|2|1",
+  "1|1|0|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.00519,
@@ -1825,8 +1759,7 @@
     0.41949
    ]
   },
-  {
-   "key": "1|1|0|2|2",
+  "1|1|0|2|2": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.06726,
@@ -1840,8 +1773,7 @@
     0.40902
    ]
   },
-  {
-   "key": "1|1|1|0|0",
+  "1|1|1|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.00678,
@@ -1855,8 +1787,7 @@
     0.49499
    ]
   },
-  {
-   "key": "1|1|1|0|1",
+  "1|1|1|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.00374,
@@ -1870,8 +1801,7 @@
     0.51257
    ]
   },
-  {
-   "key": "1|1|1|0|2",
+  "1|1|1|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "WAIT",
    "margin": 0.01116,
@@ -1885,8 +1815,7 @@
     0.52836
    ]
   },
-  {
-   "key": "1|1|1|1|0",
+  "1|1|1|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.00188,
@@ -1900,8 +1829,7 @@
     0.45272
    ]
   },
-  {
-   "key": "1|1|1|1|1",
+  "1|1|1|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.06791,
@@ -1915,8 +1843,7 @@
     0.47383
    ]
   },
-  {
-   "key": "1|1|1|1|2",
+  "1|1|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.08942,
@@ -1930,8 +1857,7 @@
     0.49323
    ]
   },
-  {
-   "key": "1|1|1|2|0",
+  "1|1|1|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.02141,
@@ -1945,8 +1871,7 @@
     0.43494
    ]
   },
-  {
-   "key": "1|1|1|2|1",
+  "1|1|1|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.0897,
@@ -1960,8 +1885,7 @@
     0.45743
    ]
   },
-  {
-   "key": "1|1|1|2|2",
+  "1|1|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.15633,
@@ -1975,8 +1899,7 @@
     0.47822
    ]
   },
-  {
-   "key": "1|1|2|0|0",
+  "1|1|2|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.01372,
@@ -1990,8 +1913,7 @@
     0.51313
    ]
   },
-  {
-   "key": "1|1|2|0|1",
+  "1|1|2|0|1": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.00041,
@@ -2005,8 +1927,7 @@
     0.53275
    ]
   },
-  {
-   "key": "1|1|2|0|2",
+  "1|1|2|0|2": {
    "strategy": "WAIT",
    "runnerUp": "SHELTERED",
    "margin": 0.00453,
@@ -2020,8 +1941,7 @@
     0.5491
    ]
   },
-  {
-   "key": "1|1|2|1|0",
+  "1|1|2|1|0": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.01051,
@@ -2035,8 +1955,7 @@
     0.47358
    ]
   },
-  {
-   "key": "1|1|2|1|1",
+  "1|1|2|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.08185,
@@ -2050,8 +1969,7 @@
     0.49705
    ]
   },
-  {
-   "key": "1|1|2|1|2",
+  "1|1|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.10526,
@@ -2065,8 +1983,7 @@
     0.51713
    ]
   },
-  {
-   "key": "1|1|2|2|0",
+  "1|1|2|2|0": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.00688,
@@ -2080,8 +1997,7 @@
     0.46035
    ]
   },
-  {
-   "key": "1|1|2|2|1",
+  "1|1|2|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.12783,
@@ -2095,8 +2011,7 @@
     0.48552
    ]
   },
-  {
-   "key": "1|1|2|2|2",
+  "1|1|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.17289,
@@ -2110,8 +2025,7 @@
     0.50714
    ]
   },
-  {
-   "key": "1|2|0|0|0",
+  "1|2|0|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.02821,
@@ -2125,8 +2039,7 @@
     0.52312
    ]
   },
-  {
-   "key": "1|2|0|0|1",
+  "1|2|0|0|1": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.016,
@@ -2140,8 +2053,7 @@
     0.53227
    ]
   },
-  {
-   "key": "1|2|0|0|2",
+  "1|2|0|0|2": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.00845,
@@ -2155,8 +2067,7 @@
     0.52952
    ]
   },
-  {
-   "key": "1|2|0|1|0",
+  "1|2|0|1|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.0191,
@@ -2170,8 +2081,7 @@
     0.48649
    ]
   },
-  {
-   "key": "1|2|0|1|1",
+  "1|2|0|1|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.03965,
@@ -2185,8 +2095,7 @@
     0.49679
    ]
   },
-  {
-   "key": "1|2|0|1|2",
+  "1|2|0|1|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04895,
@@ -2200,8 +2109,7 @@
     0.49162
    ]
   },
-  {
-   "key": "1|2|0|2|0",
+  "1|2|0|2|0": {
    "strategy": "SURVEY",
    "runnerUp": "RETURN",
    "margin": 0.04893,
@@ -2215,8 +2123,7 @@
     0.46023
    ]
   },
-  {
-   "key": "1|2|0|2|1",
+  "1|2|0|2|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.09644,
@@ -2230,8 +2137,7 @@
     0.46778
    ]
   },
-  {
-   "key": "1|2|0|2|2",
+  "1|2|0|2|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.10685,
@@ -2245,8 +2151,7 @@
     0.45286
    ]
   },
-  {
-   "key": "1|2|1|0|0",
+  "1|2|1|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.05129,
@@ -2260,8 +2165,7 @@
     0.53711
    ]
   },
-  {
-   "key": "1|2|1|0|1",
+  "1|2|1|0|1": {
    "strategy": "GATHER",
    "runnerUp": "WAIT",
    "margin": 0.01468,
@@ -2275,8 +2179,7 @@
     0.55365
    ]
   },
-  {
-   "key": "1|2|1|0|2",
+  "1|2|1|0|2": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.01065,
@@ -2290,8 +2193,7 @@
     0.56821
    ]
   },
-  {
-   "key": "1|2|1|1|0",
+  "1|2|1|1|0": {
    "strategy": "RETURN",
    "runnerUp": "GATHER",
    "margin": 0.00931,
@@ -2305,8 +2207,7 @@
     0.50602
    ]
   },
-  {
-   "key": "1|2|1|1|1",
+  "1|2|1|1|1": {
    "strategy": "WAIT",
    "runnerUp": "SHELTERED",
    "margin": 0.01137,
@@ -2320,8 +2221,7 @@
     0.52616
    ]
   },
-  {
-   "key": "1|2|1|1|2",
+  "1|2|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.00972,
@@ -2335,8 +2235,7 @@
     0.54428
    ]
   },
-  {
-   "key": "1|2|1|2|0",
+  "1|2|1|2|0": {
    "strategy": "RETURN",
    "runnerUp": "SHELTERED",
    "margin": 0.01836,
@@ -2350,8 +2249,7 @@
     0.49233
    ]
   },
-  {
-   "key": "1|2|1|2|1",
+  "1|2|1|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.04714,
@@ -2365,8 +2263,7 @@
     0.51415
    ]
   },
-  {
-   "key": "1|2|1|2|2",
+  "1|2|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.07193,
@@ -2380,8 +2277,7 @@
     0.53385
    ]
   },
-  {
-   "key": "1|2|2|0|0",
+  "1|2|2|0|0": {
    "strategy": "GATHER",
    "runnerUp": "RETURN",
    "margin": 0.03168,
@@ -2395,8 +2291,7 @@
     0.56196
    ]
   },
-  {
-   "key": "1|2|2|0|1",
+  "1|2|2|0|1": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.01196,
@@ -2410,8 +2305,7 @@
     0.58034
    ]
   },
-  {
-   "key": "1|2|2|0|2",
+  "1|2|2|0|2": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.04733,
@@ -2425,8 +2319,7 @@
     0.59531
    ]
   },
-  {
-   "key": "1|2|2|1|0",
+  "1|2|2|1|0": {
    "strategy": "RETURN",
    "runnerUp": "GATHER",
    "margin": 0.04129,
@@ -2440,8 +2333,7 @@
     0.5334
    ]
   },
-  {
-   "key": "1|2|2|1|1",
+  "1|2|2|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.0078,
@@ -2455,8 +2347,7 @@
     0.55578
    ]
   },
-  {
-   "key": "1|2|2|1|2",
+  "1|2|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.02925,
@@ -2470,8 +2361,7 @@
     0.57452
    ]
   },
-  {
-   "key": "1|2|2|2|0",
+  "1|2|2|2|0": {
    "strategy": "RETURN",
    "runnerUp": "SHELTERED",
    "margin": 0.02905,
@@ -2485,8 +2375,7 @@
     0.52474
    ]
   },
-  {
-   "key": "1|2|2|2|1",
+  "1|2|2|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "RETURN",
    "margin": 0.05614,
@@ -2500,8 +2389,7 @@
     0.54909
    ]
   },
-  {
-   "key": "1|2|2|2|2",
+  "1|2|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.09507,
@@ -2515,8 +2403,7 @@
     0.5696
    ]
   },
-  {
-   "key": "2|0|0|0|0",
+  "2|0|0|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.00567,
@@ -2530,8 +2417,7 @@
     0.32047
    ]
   },
-  {
-   "key": "2|0|0|0|1",
+  "2|0|0|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.0392,
@@ -2545,8 +2431,7 @@
     0.32577
    ]
   },
-  {
-   "key": "2|0|0|0|2",
+  "2|0|0|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.08759,
@@ -2560,8 +2445,7 @@
     0.31871
    ]
   },
-  {
-   "key": "2|0|0|1|0",
+  "2|0|0|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.17692,
@@ -2575,8 +2459,7 @@
     0.24779
    ]
   },
-  {
-   "key": "2|0|0|1|1",
+  "2|0|0|1|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.10414,
@@ -2590,8 +2473,7 @@
     0.24684
    ]
   },
-  {
-   "key": "2|0|0|1|2",
+  "2|0|0|1|2": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.04251,
@@ -2605,8 +2487,7 @@
     0.22667
    ]
   },
-  {
-   "key": "2|0|0|2|0",
+  "2|0|0|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.22673,
@@ -2620,8 +2501,7 @@
     0.19043
    ]
   },
-  {
-   "key": "2|0|0|2|1",
+  "2|0|0|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.15374,
@@ -2635,8 +2515,7 @@
     0.1715
    ]
   },
-  {
-   "key": "2|0|0|2|2",
+  "2|0|0|2|2": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.10365,
@@ -2650,8 +2529,7 @@
     0.13869
    ]
   },
-  {
-   "key": "2|0|1|0|0",
+  "2|0|1|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.00808,
@@ -2665,8 +2543,7 @@
     0.34998
    ]
   },
-  {
-   "key": "2|0|1|0|1",
+  "2|0|1|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.03162,
@@ -2680,8 +2557,7 @@
     0.36538
    ]
   },
-  {
-   "key": "2|0|1|0|2",
+  "2|0|1|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.00251,
@@ -2695,8 +2571,7 @@
     0.37956
    ]
   },
-  {
-   "key": "2|0|1|1|0",
+  "2|0|1|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.14555,
@@ -2710,8 +2585,7 @@
     0.29396
    ]
   },
-  {
-   "key": "2|0|1|1|1",
+  "2|0|1|1|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.04958,
@@ -2725,8 +2599,7 @@
     0.31125
    ]
   },
-  {
-   "key": "2|0|1|1|2",
+  "2|0|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.04305,
@@ -2740,8 +2613,7 @@
     0.32776
    ]
   },
-  {
-   "key": "2|0|1|2|0",
+  "2|0|1|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.1733,
@@ -2755,8 +2627,7 @@
     0.26658
    ]
   },
-  {
-   "key": "2|0|1|2|1",
+  "2|0|1|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.06728,
@@ -2770,8 +2641,7 @@
     0.28375
    ]
   },
-  {
-   "key": "2|0|1|2|2",
+  "2|0|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.03928,
@@ -2785,8 +2655,7 @@
     0.30023
    ]
   },
-  {
-   "key": "2|0|2|0|0",
+  "2|0|2|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.01792,
@@ -2800,8 +2669,7 @@
     0.379
    ]
   },
-  {
-   "key": "2|0|2|0|1",
+  "2|0|2|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.02686,
@@ -2815,8 +2683,7 @@
     0.39753
    ]
   },
-  {
-   "key": "2|0|2|0|2",
+  "2|0|2|0|2": {
    "strategy": "SHELTERED",
    "runnerUp": "SURVEY",
    "margin": 0.03297,
@@ -2830,8 +2697,7 @@
     0.41318
    ]
   },
-  {
-   "key": "2|0|2|1|0",
+  "2|0|2|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.119,
@@ -2845,8 +2711,7 @@
     0.32789
    ]
   },
-  {
-   "key": "2|0|2|1|1",
+  "2|0|2|1|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.01093,
@@ -2860,8 +2725,7 @@
     0.34914
    ]
   },
-  {
-   "key": "2|0|2|1|2",
+  "2|0|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.08846,
@@ -2875,8 +2739,7 @@
     0.36781
    ]
   },
-  {
-   "key": "2|0|2|2|0",
+  "2|0|2|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.13871,
@@ -2890,8 +2753,7 @@
     0.30773
    ]
   },
-  {
-   "key": "2|0|2|2|1",
+  "2|0|2|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.01871,
@@ -2905,8 +2767,7 @@
     0.32994
    ]
   },
-  {
-   "key": "2|0|2|2|2",
+  "2|0|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.09505,
@@ -2920,8 +2781,7 @@
     0.34961
    ]
   },
-  {
-   "key": "2|1|0|0|0",
+  "2|1|0|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.05453,
@@ -2935,8 +2795,7 @@
     0.34969
    ]
   },
-  {
-   "key": "2|1|0|0|1",
+  "2|1|0|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.06414,
@@ -2950,8 +2809,7 @@
     0.35569
    ]
   },
-  {
-   "key": "2|1|0|0|2",
+  "2|1|0|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.07329,
@@ -2965,8 +2823,7 @@
     0.34796
    ]
   },
-  {
-   "key": "2|1|0|1|0",
+  "2|1|0|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.14439,
@@ -2980,8 +2837,7 @@
     0.28009
    ]
   },
-  {
-   "key": "2|1|0|1|1",
+  "2|1|0|1|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.08035,
@@ -2995,8 +2851,7 @@
     0.28014
    ]
   },
-  {
-   "key": "2|1|0|1|2",
+  "2|1|0|1|2": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.02867,
@@ -3010,8 +2865,7 @@
     0.25849
    ]
   },
-  {
-   "key": "2|1|0|2|0",
+  "2|1|0|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.19298,
@@ -3025,8 +2879,7 @@
     0.22089
    ]
   },
-  {
-   "key": "2|1|0|2|1",
+  "2|1|0|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.12861,
@@ -3040,8 +2893,7 @@
     0.20346
    ]
   },
-  {
-   "key": "2|1|0|2|2",
+  "2|1|0|2|2": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.08998,
@@ -3055,8 +2907,7 @@
     0.16975
    ]
   },
-  {
-   "key": "2|1|1|0|0",
+  "2|1|1|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.03819,
@@ -3070,8 +2921,7 @@
     0.38402
    ]
   },
-  {
-   "key": "2|1|1|0|1",
+  "2|1|1|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.04144,
@@ -3085,8 +2935,7 @@
     0.40029
    ]
   },
-  {
-   "key": "2|1|1|0|2",
+  "2|1|1|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "SHELTERED",
    "margin": 0.02342,
@@ -3100,8 +2949,7 @@
     0.41509
    ]
   },
-  {
-   "key": "2|1|1|1|0",
+  "2|1|1|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.1114,
@@ -3115,8 +2963,7 @@
     0.33151
    ]
   },
-  {
-   "key": "2|1|1|1|1",
+  "2|1|1|1|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.01797,
@@ -3130,8 +2977,7 @@
     0.35023
    ]
   },
-  {
-   "key": "2|1|1|1|2",
+  "2|1|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.07243,
@@ -3145,8 +2991,7 @@
     0.36751
    ]
   },
-  {
-   "key": "2|1|1|2|0",
+  "2|1|1|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.13775,
@@ -3160,8 +3005,7 @@
     0.30427
    ]
   },
-  {
-   "key": "2|1|1|2|1",
+  "2|1|1|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.03303,
@@ -3175,8 +3019,7 @@
     0.32333
    ]
   },
-  {
-   "key": "2|1|1|2|2",
+  "2|1|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.07161,
@@ -3190,8 +3033,7 @@
     0.3407
    ]
   },
-  {
-   "key": "2|1|2|0|0",
+  "2|1|2|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.02883,
@@ -3205,8 +3047,7 @@
     0.41738
    ]
   },
-  {
-   "key": "2|1|2|0|1",
+  "2|1|2|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.03148,
@@ -3220,8 +3061,7 @@
     0.43662
    ]
   },
-  {
-   "key": "2|1|2|0|2",
+  "2|1|2|0|2": {
    "strategy": "SHELTERED",
    "runnerUp": "SURVEY",
    "margin": 0.02419,
@@ -3235,8 +3075,7 @@
     0.45267
    ]
   },
-  {
-   "key": "2|1|2|1|0",
+  "2|1|2|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.08259,
@@ -3250,8 +3089,7 @@
     0.36965
    ]
   },
-  {
-   "key": "2|1|2|1|1",
+  "2|1|2|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.02559,
@@ -3265,8 +3103,7 @@
     0.3922
    ]
   },
-  {
-   "key": "2|1|2|1|2",
+  "2|1|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.12366,
@@ -3280,8 +3117,7 @@
     0.4115
    ]
   },
-  {
-   "key": "2|1|2|2|0",
+  "2|1|2|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.10046,
@@ -3295,8 +3131,7 @@
     0.35017
    ]
   },
-  {
-   "key": "2|1|2|2|1",
+  "2|1|2|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.0218,
@@ -3310,8 +3145,7 @@
     0.37411
    ]
   },
-  {
-   "key": "2|1|2|2|2",
+  "2|1|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.13489,
@@ -3325,8 +3159,7 @@
     0.39457
    ]
   },
-  {
-   "key": "2|2|0|0|0",
+  "2|2|0|0|0": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.01326,
@@ -3340,8 +3173,7 @@
     0.3864
    ]
   },
-  {
-   "key": "2|2|0|0|1",
+  "2|2|0|0|1": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.02427,
@@ -3355,8 +3187,7 @@
     0.39208
    ]
   },
-  {
-   "key": "2|2|0|0|2",
+  "2|2|0|0|2": {
    "strategy": "SURVEY",
    "runnerUp": "GATHER",
    "margin": 0.03731,
@@ -3370,8 +3201,7 @@
     0.38237
    ]
   },
-  {
-   "key": "2|2|0|1|0",
+  "2|2|0|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SURVEY",
    "margin": 0.04502,
@@ -3385,8 +3215,7 @@
     0.32475
    ]
   },
-  {
-   "key": "2|2|0|1|1",
+  "2|2|0|1|1": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.00224,
@@ -3400,8 +3229,7 @@
     0.3246
    ]
   },
-  {
-   "key": "2|2|0|1|2",
+  "2|2|0|1|2": {
    "strategy": "SURVEY",
    "runnerUp": "DIRECT",
    "margin": 0.0688,
@@ -3415,8 +3243,7 @@
     0.30003
    ]
   },
-  {
-   "key": "2|2|0|2|0",
+  "2|2|0|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SURVEY",
    "margin": 0.14316,
@@ -3430,8 +3257,7 @@
     0.26637
    ]
   },
-  {
-   "key": "2|2|0|2|1",
+  "2|2|0|2|1": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.10262,
@@ -3445,8 +3271,7 @@
     0.2492
    ]
   },
-  {
-   "key": "2|2|0|2|2",
+  "2|2|0|2|2": {
    "strategy": "DIRECT",
    "runnerUp": "SURVEY",
    "margin": 0.0411,
@@ -3460,8 +3285,7 @@
     0.21356
    ]
   },
-  {
-   "key": "2|2|1|0|0",
+  "2|2|1|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.01663,
@@ -3475,8 +3299,7 @@
     0.42982
    ]
   },
-  {
-   "key": "2|2|1|0|1",
+  "2|2|1|0|1": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.01052,
@@ -3490,8 +3313,7 @@
     0.44578
    ]
   },
-  {
-   "key": "2|2|1|0|2",
+  "2|2|1|0|2": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 9e-05,
@@ -3505,8 +3327,7 @@
     0.46003
    ]
   },
-  {
-   "key": "2|2|1|1|0",
+  "2|2|1|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SURVEY",
    "margin": 0.06019,
@@ -3520,8 +3341,7 @@
     0.38551
    ]
   },
-  {
-   "key": "2|2|1|1|1",
+  "2|2|1|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.02563,
@@ -3535,8 +3355,7 @@
     0.40445
    ]
   },
-  {
-   "key": "2|2|1|1|2",
+  "2|2|1|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "SURVEY",
    "margin": 0.0817,
@@ -3550,8 +3369,7 @@
     0.42159
    ]
   },
-  {
-   "key": "2|2|1|2|0",
+  "2|2|1|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.09039,
@@ -3565,8 +3383,7 @@
     0.3604
    ]
   },
-  {
-   "key": "2|2|1|2|1",
+  "2|2|1|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.01161,
@@ -3580,8 +3397,7 @@
     0.38013
    ]
   },
-  {
-   "key": "2|2|1|2|2",
+  "2|2|1|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.11333,
@@ -3595,8 +3411,7 @@
     0.39777
    ]
   },
-  {
-   "key": "2|2|2|0|0",
+  "2|2|2|0|0": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.03586,
@@ -3610,8 +3425,7 @@
     0.47136
    ]
   },
-  {
-   "key": "2|2|2|0|1",
+  "2|2|2|0|1": {
    "strategy": "GATHER",
    "runnerUp": "SURVEY",
    "margin": 0.02871,
@@ -3625,8 +3439,7 @@
     0.49014
    ]
   },
-  {
-   "key": "2|2|2|0|2",
+  "2|2|2|0|2": {
    "strategy": "WAIT",
    "runnerUp": "GATHER",
    "margin": 0.01273,
@@ -3640,8 +3453,7 @@
     0.50543
    ]
   },
-  {
-   "key": "2|2|2|1|0",
+  "2|2|2|1|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.03021,
@@ -3655,8 +3467,7 @@
     0.43182
    ]
   },
-  {
-   "key": "2|2|2|1|1",
+  "2|2|2|1|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.07811,
@@ -3670,8 +3481,7 @@
     0.45455
    ]
   },
-  {
-   "key": "2|2|2|1|2",
+  "2|2|2|1|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.10481,
@@ -3685,8 +3495,7 @@
     0.47359
    ]
   },
-  {
-   "key": "2|2|2|2|0",
+  "2|2|2|2|0": {
    "strategy": "DIRECT",
    "runnerUp": "SHELTERED",
    "margin": 0.04565,
@@ -3700,8 +3509,7 @@
     0.4152
    ]
   },
-  {
-   "key": "2|2|2|2|1",
+  "2|2|2|2|1": {
    "strategy": "SHELTERED",
    "runnerUp": "DIRECT",
    "margin": 0.07878,
@@ -3715,8 +3523,7 @@
     0.43981
    ]
   },
-  {
-   "key": "2|2|2|2|2",
+  "2|2|2|2|2": {
    "strategy": "SHELTERED",
    "runnerUp": "WAIT",
    "margin": 0.1873,
@@ -3730,5 +3537,5 @@
     0.46043
    ]
   }
- ]
+ }
 }

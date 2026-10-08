@@ -7,7 +7,8 @@
 //   2) переименуйте файл в DecisionAgent.cs;
 //   3) вернитесь в Unity и дождитесь перекомпиляции.
 //
-// Ключевая идея: действие агента — НЕ «идти влево/вправо», а ИНДЕКС СТРАТЕГИИ.
+// Ключевая идея: действие агента — НЕ «идти влево/вправо», а ИНДЕКС ВАРИАНТА ДЕЙСТВИЙ
+// (DIRECT, SHELTERED, SURVEY, GATHER, WAIT, RETURN).
 // Тогда PPO решает ровно ту же задачу, что и MCDA (выбор альтернативы),
 // и сравнение двух политик корректно. Низкоуровневое исполнение остаётся
 // в StrategyExecutor и одинаково у обоих агентов.
@@ -38,7 +39,7 @@ public class DecisionAgent : Agent {
 
     int   _episodeIndex;
     float _prevDist;
-    int   _prevPickups, _prevPosts;
+    int   _prevSupplies, _prevViewpoints;
 
     public override void Initialize() {
         episodes.externalEpisodeControl = true;
@@ -46,31 +47,31 @@ public class DecisionAgent : Agent {
     }
 
     public override void OnEpisodeBegin() {
-        // Учебный план: фон угрозы задаётся из конфигурации mlagents-learn
+        // Учебный план: от ясной погоды к ненастной; уровень задаётся из конфигурации mlagents-learn
         episodes.useCurriculumAmbient = true;
         episodes.curriculumAmbient =
-            Academy.Instance.EnvironmentParameters.GetWithDefault("threat_level", 0.2f);
+            Academy.Instance.EnvironmentParameters.GetWithDefault("weather_level", 0.2f);
 
         episodes.StartEpisode(_episodeIndex++);
-        _prevDist    = state.Dist01;
-        _prevPickups = 0;
-        _prevPosts   = 0;
+        _prevDist       = state.Dist01;
+        _prevSupplies   = 0;
+        _prevViewpoints = 0;
     }
 
     public override void CollectObservations(VectorSensor sensor) {
         // 16 значений — ровно столько надо указать в Behavior Parameters → Space Size
-        sensor.AddObservation(state.Hp01);                                    // 1
+        sensor.AddObservation(state.Energy01);                                // 1
         sensor.AddObservation(state.Dist01);                                  // 2
-        sensor.AddObservation(state.Threat01);                                // 3
-        sensor.AddObservation(state.Res01);                                   // 4
-        sensor.AddObservation(state.Cover01);                                 // 5
+        sensor.AddObservation(state.Weather01);                               // 3
+        sensor.AddObservation(state.Supplies01);                              // 4
+        sensor.AddObservation(state.Shelter01);                               // 5
         sensor.AddObservation(Mathf.Clamp01(StepCount /
-                              Mathf.Max(1f, MaxStep)));                       // 6  сколько времени вышло
-        Vector2 goalDir = LevelRegistry.Goal != null
-            ? ((Vector2)(LevelRegistry.Goal.transform.position - state.transform.position)).normalized
+                              Mathf.Max(1f, MaxStep)));                       // 6  сколько светлого времени прошло
+        Vector2 hutDir = LevelRegistry.Hut != null
+            ? ((Vector2)(LevelRegistry.Hut.transform.position - state.transform.position)).normalized
             : Vector2.zero;
-        sensor.AddObservation(goalDir);                                       // 7, 8
-        sensor.AddObservation(motor.Velocity / Mathf.Max(0.01f, balance.baseSpeed)); // 9, 10
+        sensor.AddObservation(hutDir);                                        // 7, 8  направление на приют
+        sensor.AddObservation(motor.Velocity / Mathf.Max(0.01f, balance.baseSpeed));// 9, 10
         sensor.AddOneHotObservation(policy.IndexOfStrategy(executor.CurrentStrategy),
                                     policy.Strategies.Length);                // 11…16
     }
@@ -83,9 +84,9 @@ public class DecisionAgent : Agent {
 
         if (!episodes.IsActive) {                       // эпизод завершил EpisodeManager
             switch (episodes.LastResult) {
-                case "SUCCESS": AddReward( 1.0f); break;
-                case "DEATH":   AddReward(-1.0f); break;
-                default:        AddReward(-0.5f); break;
+                case "SUCCESS":   AddReward( 1.0f); break;   // дошёл до приюта
+                case "EXHAUSTED": AddReward(-1.0f); break;   // выбился из сил
+                default:          AddReward(-0.5f); break;   // стемнело
             }
             EndEpisode();
         }
@@ -96,8 +97,8 @@ public class DecisionAgent : Agent {
     /// можно сравнить две политики в одной сцене и записать демонстрации (.demo)
     /// для имитационного обучения.
     public override void Heuristic(in ActionBuffers actionsOut) {
-        string a = policy.Decide(state.Hp01, state.Dist01, state.Threat01,
-                                 state.Res01, state.Cover01, out _);
+        string a = policy.Decide(state.Energy01, state.Dist01, state.Weather01,
+                                 state.Supplies01, state.Shelter01, out _);
         var d = actionsOut.DiscreteActions;
         d[0] = policy.IndexOfStrategy(a);
     }
@@ -106,14 +107,14 @@ public class DecisionAgent : Agent {
     float ShapedReward() {
         float r = 0f;
         r += wProgress * (_prevDist - state.Dist01);               // продвижение
-        r -= wRisk     * (state.DamageTakenThisStep / balance.hpMax);
+        r -= wRisk     * (state.EnergyLostThisStep / balance.energyMax);   // риск: силы, отнятые непогодой
         r -= wTime     * (1f / Mathf.Max(1f, MaxStep));
-        r += wSupply   * 0.10f * (Trig().PickupsCollected - _prevPickups);
-        r += wInfo     * 0.10f * (Trig().PostsVisited     - _prevPosts);
+        r += wSupply   * 0.10f * (Trig().SuppliesCollected - _prevSupplies);   // родники и ягодники
+        r += wInfo     * 0.10f * (Trig().ViewpointsVisited - _prevViewpoints);  // смотровые точки
 
-        _prevDist    = state.Dist01;
-        _prevPickups = Trig().PickupsCollected;
-        _prevPosts   = Trig().PostsVisited;
+        _prevDist       = state.Dist01;
+        _prevSupplies   = Trig().SuppliesCollected;
+        _prevViewpoints = Trig().ViewpointsVisited;
         state.ClearStepCounters();
         return r;
     }

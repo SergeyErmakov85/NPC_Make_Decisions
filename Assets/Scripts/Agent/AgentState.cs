@@ -1,8 +1,8 @@
-// AgentState.cs — вычисление пяти переменных состояния.
+// AgentState.cs — вычисление пяти переменных состояния путешественника.
 //
 // ЭТО САМЫЙ ОТВЕТСТВЕННЫЙ ФАЙЛ. Имена и диапазоны обязаны совпадать
-// с ноутбуком, иначе policy_unity.json будет читаться неверно,
-// а поведение получится бессмысленным, но правдоподобным.
+// с ноутбуком (energy, dist, weather, supplies, shelter), иначе policy_unity.json
+// будет читаться неверно, а поведение получится бессмысленным, но правдоподобным.
 using UnityEngine;
 
 namespace CorridorRisk {
@@ -13,77 +13,82 @@ public class AgentState : MonoBehaviour {
     [SerializeField] LevelGraph graph;
     [SerializeField] CorridorRiskBalance balance;
 
-    [Header("Текущие ресурсы")]
-    public float hp   = 100f;
-    public float ammo = 100f;
+    [Header("Силы и запасы путешественника")]
+    public float energy   = 100f;   // силы
+    public float supplies = 100f;   // запас воды и еды
 
-    [Header("Настройки эпизода (ставит EpisodeManager)")]
-    public float globalThreatScale = 1f;
-    public float ambientThreat     = 0f;
+    [Header("Настройки похода (ставит EpisodeManager)")]
+    public float globalWeatherScale = 1f;   // во сколько раз усилить непогоду на участках
+    public float ambientWeather     = 0f;   // «фоновая» непогода по всей карте
 
-    float _threatEma, _coverEma;
+    float _weatherEma, _shelterEma;
 
-    public float Hp01     => Mathf.Clamp01(hp   / balance.hpMax);
-    public float Res01    => Mathf.Clamp01(ammo / balance.ammoMax);
-    public float Dist01   => Mathf.Clamp01(graph.PathDistanceToGoal(transform.position) / graph.DMax);
-    public float Threat01 => _threatEma;
-    public float Cover01  => _coverEma;
+    // Пять переменных состояния в [0, 1] — в том же порядке, что в ноутбуке.
+    public float Energy01   => Mathf.Clamp01(energy   / balance.energyMax);
+    public float Dist01     => Mathf.Clamp01(graph.PathDistanceToHut(transform.position) / graph.DMax);
+    public float Weather01  => _weatherEma;
+    public float Supplies01 => Mathf.Clamp01(supplies / balance.suppliesMax);
+    public float Shelter01  => _shelterEma;
 
-    /// Множитель скорости от запаса — та же функция, что ammo_factor() в ноутбуке.
-    public float AmmoFactor => 0.10f + 0.90f * Mathf.Pow(Res01, 1.4f);
+    /// Множитель скорости от запасов — та же функция, что supplies_factor() в ноутбуке:
+    /// голодный и мучимый жаждой путник идёт медленно.
+    public float SuppliesFactor => 0.10f + 0.90f * Mathf.Pow(Supplies01, 1.4f);
 
-    public float DamageTakenThisStep { get; private set; }
+    /// Сколько сил потеряно с прошлого решения (нужно для награды на уровне B).
+    public float EnergyLostThisStep { get; private set; }
 
-    public void ResetState(float hp01, float res01, float threatScale, float ambient) {
-        hp   = hp01  * balance.hpMax;
-        ammo = res01 * balance.ammoMax;
-        globalThreatScale = threatScale;
-        ambientThreat     = ambient;
-        // EMA инициализируем мгновенным значением, иначе первые решения эпизода
+    public void ResetState(float energy01, float supplies01, float weatherScale, float ambient) {
+        energy   = energy01   * balance.energyMax;
+        supplies = supplies01 * balance.suppliesMax;
+        globalWeatherScale = weatherScale;
+        ambientWeather     = ambient;
+        // Сглаженные значения начинаем с мгновенных, иначе первые решения похода
         // принимаются по пустому состоянию.
         Vector2 p = transform.position;
-        _threatEma = RawThreatNow(p);
-        _coverEma  = LevelRegistry.Cover(p);
-        DamageTakenThisStep = 0f;
+        _weatherEma = RawWeatherNow(p);
+        _shelterEma = LevelRegistry.Shelter(p);
+        EnergyLostThisStep = 0f;
     }
 
-    float RawThreatNow(Vector2 p) {
-        if (LevelRegistry.Safe != null && LevelRegistry.Safe.Contains(p)) return 0f;
-        return Mathf.Clamp01(LevelRegistry.RawThreat(p) * globalThreatScale + ambientThreat);
+    float RawWeatherNow(Vector2 p) {
+        if (LevelRegistry.Camp != null && LevelRegistry.Camp.Contains(p)) return 0f;   // у костра сухо и тихо
+        return Mathf.Clamp01(LevelRegistry.RawWeather(p) * globalWeatherScale + ambientWeather);
     }
 
     void FixedUpdate() {
         Vector2 p = transform.position;
-        float threat = RawThreatNow(p);
-        float cover  = LevelRegistry.Cover(p);
+        float weather = RawWeatherNow(p);
+        float shelter = LevelRegistry.Shelter(p);
 
-        // Экспоненциальное сглаживание. Без него агент дёргается на границах зон:
-        // одиночный шаг через край зоны перебрасывает threat01 через границу бина.
+        // Экспоненциальное сглаживание. Без него путешественник «дёргается» на границах участков:
+        // один шаг через край участка перебрасывает weather01 через границу бина.
         float k = 1f - Mathf.Exp(-Time.fixedDeltaTime / Mathf.Max(0.01f, balance.smoothing));
-        _threatEma = Mathf.Lerp(_threatEma, threat, k);
-        _coverEma  = Mathf.Lerp(_coverEma,  cover,  k);
+        _weatherEma = Mathf.Lerp(_weatherEma, weather, k);
+        _shelterEma = Mathf.Lerp(_shelterEma, shelter, k);
 
-        // Урон от угрозы: укрытие снижает его на 70 % при полной плотности.
-        float dmg = balance.kDamage * _threatEma * (1f - 0.7f * _coverEma) * Time.fixedDeltaTime;
-        if (dmg > 0f) { hp -= dmg; DamageTakenThisStep += dmg; }
+        // Непогода отнимает силы: ветер и дождь выматывают. Укрытия (лес, навесы)
+        // снижают потерю сил до 70 % при максимальной доступности.
+        float loss = balance.kFatigue * _weatherEma * (1f - 0.7f * _shelterEma) * Time.fixedDeltaTime;
+        if (loss > 0f) { energy -= loss; EnergyLostThisStep += loss; }
 
-        // Регенерация в безопасной зоне.
-        if (LevelRegistry.Safe != null && LevelRegistry.Safe.Contains(p))
-            hp += LevelRegistry.Safe.hpRegenPerSecond * Time.fixedDeltaTime;
+        // Отдых у костра на стоянке восстанавливает силы.
+        if (LevelRegistry.Camp != null && LevelRegistry.Camp.Contains(p))
+            energy += LevelRegistry.Camp.energyRegenPerSecond * Time.fixedDeltaTime;
 
-        hp   = Mathf.Clamp(hp,   0f, balance.hpMax);
-        ammo = Mathf.Clamp(ammo, 0f, balance.ammoMax);
+        energy   = Mathf.Clamp(energy,   0f, balance.energyMax);
+        supplies = Mathf.Clamp(supplies, 0f, balance.suppliesMax);
     }
 
-    public void ConsumeAmmo(float perSecond) { ammo -= perSecond * Time.deltaTime; }
-    public void Regen(float hpPerSecond)     { hp   += hpPerSecond * Time.deltaTime; }
-    public void ClearStepCounters()          { DamageTakenThisStep = 0f; }
+    public void ConsumeSupplies(float perSecond) { supplies -= perSecond * Time.deltaTime; }
+    public void Regen(float energyPerSecond)     { energy   += energyPerSecond * Time.deltaTime; }
+    public void ClearStepCounters()              { EnergyLostThisStep = 0f; }
 
-    public void ApplyPickup(Pickup p) {
-        if (p.kind == PickupKind.Ammo) ammo += p.amount * balance.ammoMax;
-        else                           hp   += p.amount * balance.hpMax;
-        hp   = Mathf.Clamp(hp,   0f, balance.hpMax);
-        ammo = Mathf.Clamp(ammo, 0f, balance.ammoMax);
+    /// Родник пополняет запас воды и еды, ягодник восстанавливает силы.
+    public void ApplySupply(SupplyPoint p) {
+        if (p.kind == SupplyKind.Spring) supplies += p.amount * balance.suppliesMax;
+        else                             energy   += p.amount * balance.energyMax;
+        energy   = Mathf.Clamp(energy,   0f, balance.energyMax);
+        supplies = Mathf.Clamp(supplies, 0f, balance.suppliesMax);
     }
 }
 
