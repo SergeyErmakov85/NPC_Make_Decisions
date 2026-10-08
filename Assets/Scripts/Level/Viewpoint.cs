@@ -1,11 +1,12 @@
-// ObservationPost.cs — пост наблюдения: цель стратегии SCOUT.
+// Viewpoint.cs — смотровая точка: цель варианта SURVEY («осмотреться»).
+// Поднявшись сюда, путешественник узнаёт о местности больше.
 using UnityEngine;
 
 namespace CorridorRisk {
 
 [RequireComponent(typeof(CircleCollider2D))]
-public class ObservationPost : MonoBehaviour {
-    public string id = "O?";
+public class Viewpoint : MonoBehaviour {
+    public string id = "V?";
     public bool Visited { get; private set; }
 
     void Reset() {
@@ -14,8 +15,8 @@ public class ObservationPost : MonoBehaviour {
         c.radius = 1.5f;
     }
 
-    public void ResetPost()  { Visited = false; }
-    public void MarkVisited() { Visited = true; }
+    public void ResetViewpoint() { Visited = false; }
+    public void MarkVisited()    { Visited = true; }
 
     void OnDrawGizmos() {
         Gizmos.color = new Color(0.55f, 0.35f, 0.95f);

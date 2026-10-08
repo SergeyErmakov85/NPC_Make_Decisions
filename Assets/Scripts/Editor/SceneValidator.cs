@@ -21,16 +21,16 @@ public static class SceneValidator {
         Check(graph != null, "LevelGraph на сцене", problems, ok);
 
         var state = Object.FindFirstObjectByType<AgentState>();
-        Check(state != null, "AgentState на агенте", problems, ok);
+        Check(state != null, "AgentState на путешественнике", problems, ok);
 
         var motor = Object.FindFirstObjectByType<AgentMotor>();
-        Check(motor != null, "AgentMotor на агенте", problems, ok);
+        Check(motor != null, "AgentMotor на путешественнике", problems, ok);
 
         var policy = Object.FindFirstObjectByType<DecisionPolicy>();
-        Check(policy != null, "DecisionPolicy на агенте", problems, ok);
+        Check(policy != null, "DecisionPolicy на путешественнике", problems, ok);
 
         var exec = Object.FindFirstObjectByType<StrategyExecutor>();
-        Check(exec != null, "StrategyExecutor на агенте", problems, ok);
+        Check(exec != null, "StrategyExecutor на путешественнике", problems, ok);
 
         var manager = Object.FindFirstObjectByType<EpisodeManager>();
         Check(manager != null, "EpisodeManager в Systems", problems, ok);
@@ -38,22 +38,22 @@ public static class SceneValidator {
         var logger = Object.FindFirstObjectByType<EpisodeLogger>();
         Check(logger != null, "EpisodeLogger в Systems", problems, ok);
 
-        Check(Object.FindFirstObjectByType<GoalZone>() != null, "GoalZone", problems, ok);
-        Check(Object.FindFirstObjectByType<SafeZone>() != null, "SafeZone", problems, ok);
+        Check(Object.FindFirstObjectByType<HutZone>() != null, "HutZone", problems, ok);
+        Check(Object.FindFirstObjectByType<CampZone>() != null, "CampZone", problems, ok);
 
-        int threats = Object.FindObjectsByType<ThreatZone>(FindObjectsSortMode.None).Length;
-        Check(threats >= 7, $"зон угрозы: {threats} (ожидается 7)", problems, ok);
+        int weather = Object.FindObjectsByType<WeatherZone>(FindObjectsSortMode.None).Length;
+        Check(weather >= 7, $"участков непогоды: {weather} (ожидается 7)", problems, ok);
 
-        int covers = Object.FindObjectsByType<CoverZone>(FindObjectsSortMode.None).Length;
-        Check(covers >= 10, $"зон укрытий: {covers} (ожидается 10)", problems, ok);
+        int shelters = Object.FindObjectsByType<ShelterZone>(FindObjectsSortMode.None).Length;
+        Check(shelters >= 10, $"участков укрытий: {shelters} (ожидается 10)", problems, ok);
 
         int waypoints = Object.FindObjectsByType<WaypointMarker>(FindObjectsSortMode.None).Length;
         Check(waypoints >= 25, $"путевых точек: {waypoints} (ожидается 25)", problems, ok);
 
         if (state != null) {
             var rb = state.GetComponent<Rigidbody2D>();
-            Check(rb != null, "Rigidbody2D на агенте", problems, ok);
-            Check(state.GetComponent<Collider2D>() != null, "Collider2D на агенте", problems, ok);
+            Check(rb != null, "Rigidbody2D на путешественнике", problems, ok);
+            Check(state.GetComponent<Collider2D>() != null, "Collider2D на путешественнике", problems, ok);
         }
 
         var sb = new StringBuilder();

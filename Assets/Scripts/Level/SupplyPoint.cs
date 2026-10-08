@@ -1,15 +1,17 @@
-// Pickup.cs — ресурс (ammo) или аптечка (med).
-// Гаснет на время эпизода и восстанавливается при сбросе.
+// SupplyPoint.cs — место, где можно пополнить запасы или подкрепиться:
+//   Spring  — родник: пополняет запас воды и еды (supplies);
+//   Berries — ягодник: перекус восстанавливает силы (energy).
+// На время похода «исчерпывается» и восстанавливается при сбросе эпизода.
 using UnityEngine;
 
 namespace CorridorRisk {
 
-public enum PickupKind { Ammo, Med }
+public enum SupplyKind { Spring, Berries }
 
 [RequireComponent(typeof(CircleCollider2D))]
-public class Pickup : MonoBehaviour {
-    public string id = "P?";
-    public PickupKind kind = PickupKind.Ammo;
+public class SupplyPoint : MonoBehaviour {
+    public string id = "SP?";
+    public SupplyKind kind = SupplyKind.Spring;
     [Range(0f, 1f)] public float amount = 0.30f;   // доля от максимума
 
     public bool IsActive { get; private set; } = true;
@@ -20,7 +22,7 @@ public class Pickup : MonoBehaviour {
         c.radius = 1.5f;
     }
 
-    public void ResetPickup() {
+    public void ResetSupply() {
         IsActive = true;
         foreach (var r in GetComponentsInChildren<SpriteRenderer>()) r.enabled = true;
     }
@@ -31,7 +33,7 @@ public class Pickup : MonoBehaviour {
     }
 
     void OnDrawGizmos() {
-        Gizmos.color = kind == PickupKind.Ammo ? Color.yellow : Color.red;
+        Gizmos.color = kind == SupplyKind.Spring ? new Color(0.2f, 0.7f, 1f) : new Color(0.75f, 0.2f, 0.55f);
         Gizmos.DrawWireCube(transform.position, Vector3.one * 1.6f);
     }
 }

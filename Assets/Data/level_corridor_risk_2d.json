@@ -1,5 +1,5 @@
 {
- "version": "1.0",
+ "version": "2.0",
  "name": "CorridorRisk2D",
  "worldBounds": {
   "xMin": -32,
@@ -130,7 +130,7 @@
    "y": 1.0
   },
   {
-   "id": "GOAL",
+   "id": "HUT",
    "x": 26.0,
    "y": 0.0
   }
@@ -213,7 +213,7 @@
   },
   {
    "a": "A7",
-   "b": "GOAL",
+   "b": "HUT",
    "length": 4.472
   },
   {
@@ -248,7 +248,7 @@
   },
   {
    "a": "B6",
-   "b": "GOAL",
+   "b": "HUT",
    "length": 4.243
   },
   {
@@ -278,7 +278,7 @@
   },
   {
    "a": "C5",
-   "b": "GOAL",
+   "b": "HUT",
    "length": 8.062
   },
   {
@@ -322,7 +322,7 @@
    "A5",
    "A6",
    "A7",
-   "GOAL"
+   "HUT"
   ],
   "B": [
    "FORK",
@@ -332,7 +332,7 @@
    "B4",
    "B5",
    "B6",
-   "GOAL"
+   "HUT"
   ],
   "C": [
    "FORK",
@@ -341,12 +341,12 @@
    "C3",
    "C4",
    "C5",
-   "GOAL"
+   "HUT"
   ]
  },
- "threatZones": [
+ "weatherZones": [
   {
-   "id": "T1",
+   "id": "W1",
    "x": -8.0,
    "y": 0.0,
    "rInner": 6.0,
@@ -354,7 +354,7 @@
    "intensity": 0.85
   },
   {
-   "id": "T2",
+   "id": "W2",
    "x": 6.0,
    "y": 0.0,
    "rInner": 6.0,
@@ -362,7 +362,7 @@
    "intensity": 0.9
   },
   {
-   "id": "T3",
+   "id": "W3",
    "x": 16.0,
    "y": 1.0,
    "rInner": 5.0,
@@ -370,7 +370,7 @@
    "intensity": 0.75
   },
   {
-   "id": "T4",
+   "id": "W4",
    "x": -2.0,
    "y": -13.0,
    "rInner": 5.0,
@@ -378,7 +378,7 @@
    "intensity": 0.5
   },
   {
-   "id": "T5",
+   "id": "W5",
    "x": 14.0,
    "y": -11.0,
    "rInner": 5.0,
@@ -386,7 +386,7 @@
    "intensity": 0.45
   },
   {
-   "id": "T6",
+   "id": "W6",
    "x": 0.0,
    "y": 15.0,
    "rInner": 5.0,
@@ -394,7 +394,7 @@
    "intensity": 0.25
   },
   {
-   "id": "T7",
+   "id": "W7",
    "x": 18.0,
    "y": 8.0,
    "rInner": 4.0,
@@ -402,147 +402,147 @@
    "intensity": 0.35
   }
  ],
- "coverZones": [
+ "shelterZones": [
   {
-   "id": "CV_S",
+   "id": "SH_S",
    "x": -27.0,
    "y": 0.0,
    "radius": 6.0,
    "density": 0.6
   },
   {
-   "id": "CV_A1",
+   "id": "SH_A1",
    "x": -18.0,
    "y": 15.0,
    "radius": 8.0,
    "density": 0.85
   },
   {
-   "id": "CV_A2",
+   "id": "SH_A2",
    "x": -2.0,
    "y": 15.0,
    "radius": 10.0,
    "density": 0.8
   },
   {
-   "id": "CV_A0",
+   "id": "SH_A0",
    "x": -23.0,
    "y": 9.0,
    "radius": 5.0,
    "density": 0.65
   },
   {
-   "id": "CV_A3",
+   "id": "SH_A3",
    "x": 14.0,
    "y": 12.0,
    "radius": 8.0,
    "density": 0.82
   },
   {
-   "id": "CV_B1",
+   "id": "SH_B1",
    "x": -12.0,
    "y": -12.0,
    "radius": 7.0,
    "density": 0.55
   },
   {
-   "id": "CV_B2",
+   "id": "SH_B2",
    "x": 6.0,
    "y": -13.0,
    "radius": 8.0,
    "density": 0.5
   },
   {
-   "id": "CV_B3",
+   "id": "SH_B3",
    "x": 19.0,
    "y": -6.0,
    "radius": 5.0,
    "density": 0.45
   },
   {
-   "id": "CV_C1",
+   "id": "SH_C1",
    "x": -12.0,
    "y": 0.0,
    "radius": 4.0,
    "density": 0.3
   },
   {
-   "id": "CV_C2",
+   "id": "SH_C2",
    "x": 4.0,
    "y": -1.0,
    "radius": 3.5,
    "density": 0.25
   }
  ],
- "pickups": [
+ "supplyPoints": [
   {
-   "id": "P1",
+   "id": "SP1",
    "x": -10.0,
    "y": -13.0,
-   "kind": "ammo",
+   "kind": "spring",
    "amount": 0.3
   },
   {
-   "id": "P2",
+   "id": "SP2",
    "x": 2.0,
    "y": -13.0,
-   "kind": "ammo",
+   "kind": "spring",
    "amount": 0.3
   },
   {
-   "id": "P3",
+   "id": "SP3",
    "x": 12.0,
    "y": -12.0,
-   "kind": "ammo",
+   "kind": "spring",
    "amount": 0.3
   },
   {
-   "id": "P4",
+   "id": "SP4",
    "x": -21.0,
    "y": -5.0,
-   "kind": "ammo",
+   "kind": "spring",
    "amount": 0.15
   },
   {
-   "id": "M1",
+   "id": "BR1",
    "x": -2.0,
    "y": 15.0,
-   "kind": "med",
+   "kind": "berries",
    "amount": 0.25
   },
   {
-   "id": "M2",
+   "id": "BR2",
    "x": 0.0,
    "y": -13.0,
-   "kind": "med",
+   "kind": "berries",
    "amount": 0.25
   }
  ],
- "observationPosts": [
+ "viewpoints": [
   {
-   "id": "O1",
+   "id": "V1",
    "x": -18.0,
    "y": 15.0
   },
   {
-   "id": "O2",
+   "id": "V2",
    "x": 0.0,
    "y": -13.0
   },
   {
-   "id": "O3",
+   "id": "V3",
    "x": 18.0,
    "y": 8.0
   }
  ],
- "safeZone": {
-  "id": "SAFE",
+ "campZone": {
+  "id": "CAMP",
   "x": -27.0,
   "y": 0.0,
   "radius": 6.0
  },
- "goalZone": {
-  "id": "GOAL_Z",
+ "hutZone": {
+  "id": "HUT_Z",
   "x": 26.0,
   "y": 0.0,
   "radius": 2.5
@@ -552,226 +552,226 @@
    "id": "S0",
    "x": -29.0,
    "y": 0.0,
-   "distToGoal": 56.71,
+   "distToHut": 56.71,
    "dist01": 0.872,
-   "threat01": 0.0,
-   "cover01": 0.53
+   "weather01": 0.0,
+   "shelter01": 0.53
   },
   {
    "id": "S1",
    "x": -27.0,
    "y": 5.0,
-   "distToGoal": 55.57,
+   "distToHut": 55.57,
    "dist01": 0.855,
-   "threat01": 0.0,
-   "cover01": 0.425
+   "weather01": 0.0,
+   "shelter01": 0.425
   },
   {
    "id": "S2",
    "x": -27.0,
    "y": -5.0,
-   "distToGoal": 55.71,
+   "distToHut": 55.71,
    "dist01": 0.857,
-   "threat01": 0.0,
-   "cover01": 0.425
+   "weather01": 0.0,
+   "shelter01": 0.425
   },
   {
    "id": "S3",
    "x": -24.0,
    "y": 2.0,
-   "distToGoal": 51.32,
+   "distToHut": 51.32,
    "dist01": 0.79,
-   "threat01": 0.0,
-   "cover01": 0.474
+   "weather01": 0.0,
+   "shelter01": 0.474
   },
   {
    "id": "S4",
    "x": -24.0,
    "y": -3.0,
-   "distToGoal": 52.1,
+   "distToHut": 52.1,
    "dist01": 0.802,
-   "threat01": 0.0,
-   "cover01": 0.452
+   "weather01": 0.0,
+   "shelter01": 0.452
   },
   {
    "id": "FORK",
    "x": -22.0,
    "y": 0.0,
-   "distToGoal": 48.5,
+   "distToHut": 48.5,
    "dist01": 0.746,
-   "threat01": 0.0,
-   "cover01": 0.425
+   "weather01": 0.0,
+   "shelter01": 0.425
   },
   {
    "id": "A1",
    "x": -24.0,
    "y": 8.0,
-   "distToGoal": 56.74,
+   "distToHut": 56.74,
    "dist01": 0.873,
-   "threat01": 0.0,
-   "cover01": 0.586
+   "weather01": 0.0,
+   "shelter01": 0.586
   },
   {
    "id": "A2",
    "x": -18.0,
    "y": 15.0,
-   "distToGoal": 49.75,
+   "distToHut": 49.75,
    "dist01": 0.765,
-   "threat01": 0.0,
-   "cover01": 0.85
+   "weather01": 0.0,
+   "shelter01": 0.85
   },
   {
    "id": "A3",
    "x": -8.0,
    "y": 15.0,
-   "distToGoal": 39.75,
+   "distToHut": 39.75,
    "dist01": 0.611,
-   "threat01": 0.125,
-   "cover01": 0.632
+   "weather01": 0.125,
+   "shelter01": 0.632
   },
   {
    "id": "A4",
    "x": 2.0,
    "y": 15.0,
-   "distToGoal": 29.75,
+   "distToHut": 29.75,
    "dist01": 0.458,
-   "threat01": 0.25,
-   "cover01": 0.688
+   "weather01": 0.25,
+   "shelter01": 0.688
   },
   {
    "id": "A5",
    "x": 10.0,
    "y": 14.0,
-   "distToGoal": 21.68,
+   "distToHut": 21.68,
    "dist01": 0.334,
-   "threat01": 0.04,
-   "cover01": 0.66
+   "weather01": 0.04,
+   "shelter01": 0.66
   },
   {
    "id": "A6",
    "x": 16.0,
    "y": 10.0,
-   "distToGoal": 14.47,
+   "distToHut": 14.47,
    "dist01": 0.223,
-   "threat01": 0.35,
-   "cover01": 0.719
+   "weather01": 0.35,
+   "shelter01": 0.719
   },
   {
    "id": "A7",
    "x": 22.0,
    "y": 2.0,
-   "distToGoal": 4.47,
+   "distToHut": 4.47,
    "dist01": 0.069,
-   "threat01": 0.588,
-   "cover01": 0.0
+   "weather01": 0.588,
+   "shelter01": 0.0
   },
   {
    "id": "B1",
    "x": -20.0,
    "y": -8.0,
-   "distToGoal": 51.93,
+   "distToHut": 51.93,
    "dist01": 0.799,
-   "threat01": 0.0,
-   "cover01": 0.0
+   "weather01": 0.0,
+   "shelter01": 0.0
   },
   {
    "id": "B2",
    "x": -10.0,
    "y": -13.0,
-   "distToGoal": 40.75,
+   "distToHut": 40.75,
    "dist01": 0.627,
-   "threat01": 0.2,
-   "cover01": 0.489
+   "weather01": 0.2,
+   "shelter01": 0.489
   },
   {
    "id": "B3",
    "x": 0.0,
    "y": -13.0,
-   "distToGoal": 30.75,
+   "distToHut": 30.75,
    "dist01": 0.473,
-   "threat01": 0.5,
-   "cover01": 0.369
+   "weather01": 0.5,
+   "shelter01": 0.369
   },
   {
    "id": "B4",
    "x": 10.0,
    "y": -13.0,
-   "distToGoal": 20.75,
+   "distToHut": 20.75,
    "dist01": 0.319,
-   "threat01": 0.45,
-   "cover01": 0.412
+   "weather01": 0.45,
+   "shelter01": 0.412
   },
   {
    "id": "B5",
    "x": 18.0,
    "y": -8.0,
-   "distToGoal": 11.31,
+   "distToHut": 11.31,
    "dist01": 0.174,
-   "threat01": 0.45,
-   "cover01": 0.38
+   "weather01": 0.45,
+   "shelter01": 0.38
   },
   {
    "id": "B6",
    "x": 23.0,
    "y": -3.0,
-   "distToGoal": 4.24,
+   "distToHut": 4.24,
    "dist01": 0.065,
-   "threat01": 0.291,
-   "cover01": 0.293
+   "weather01": 0.291,
+   "shelter01": 0.293
   },
   {
    "id": "C1",
    "x": -14.0,
    "y": 0.0,
-   "distToGoal": 40.5,
+   "distToHut": 40.5,
    "dist01": 0.623,
-   "threat01": 0.85,
-   "cover01": 0.247
+   "weather01": 0.85,
+   "shelter01": 0.247
   },
   {
    "id": "C2",
    "x": -6.0,
    "y": 1.0,
-   "distToGoal": 32.43,
+   "distToHut": 32.43,
    "dist01": 0.499,
-   "threat01": 0.85,
-   "cover01": 0.0
+   "weather01": 0.85,
+   "shelter01": 0.0
   },
   {
    "id": "C3",
    "x": 2.0,
    "y": -1.0,
-   "distToGoal": 24.19,
+   "distToHut": 24.19,
    "dist01": 0.372,
-   "threat01": 0.9,
-   "cover01": 0.2
+   "weather01": 0.9,
+   "shelter01": 0.2
   },
   {
    "id": "C4",
    "x": 10.0,
    "y": 0.0,
-   "distToGoal": 16.12,
+   "distToHut": 16.12,
    "dist01": 0.248,
-   "threat01": 0.9,
-   "cover01": 0.0
+   "weather01": 0.9,
+   "shelter01": 0.0
   },
   {
    "id": "C5",
    "x": 18.0,
    "y": 1.0,
-   "distToGoal": 8.06,
+   "distToHut": 8.06,
    "dist01": 0.124,
-   "threat01": 0.75,
-   "cover01": 0.0
+   "weather01": 0.75,
+   "shelter01": 0.0
   },
   {
-   "id": "GOAL",
+   "id": "HUT",
    "x": 26.0,
    "y": 0.0,
-   "distToGoal": 0.0,
+   "distToHut": 0.0,
    "dist01": 0.0,
-   "threat01": 0.0,
-   "cover01": 0.0
+   "weather01": 0.0,
+   "shelter01": 0.0
   }
  ],
  "bins": {
@@ -779,11 +779,11 @@
    0.35,
    0.675
   ],
-  "cover": [
+  "shelter": [
    0.35,
    0.65
   ],
-  "threat": [
+  "weather": [
    0.3,
    0.7
   ]

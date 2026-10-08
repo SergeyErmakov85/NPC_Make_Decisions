@@ -3,10 +3,10 @@
 //
 // LevelBuilder отвечает за геометрию и логику, этот скрипт — только за вид.
 // Уровень рисуется как туристическая карта:
-//   зоны угрозы   → участки непогоды (облако с дождём, сила = intensity);
-//   зоны укрытий  → лес (деревья, плотность = density);
-//   ammo / med    → родники (запас воды и еды) / ягодники (силы);
-//   посты         → смотровые точки;  SafeZone → стоянка;  цель → горный приют.
+//   WeatherZone   → участки непогоды (облако с дождём, сила = intensity);
+//   ShelterZone   → лес (деревья, плотность = density);
+//   SupplyPoint   → родники (запас воды и еды) / ягодники (силы);
+//   Viewpoint     → смотровые точки;  CampZone → стоянка;  HutZone → горный приют.
 // Имена объектов и компонентов не меняются: код симуляции их не замечает.
 //
 // Скрипт идемпотентный: перед применением удаляет всё, что создал раньше,
@@ -194,13 +194,13 @@ public static class LevelStyler {
 
     static void StyleForest(GameObject level, LevelFile d) {
         var obstacles = new List<Vector2>();
-        foreach (var p in d.pickups)          obstacles.Add(new Vector2(p.x, p.y));
-        foreach (var o in d.observationPosts) obstacles.Add(new Vector2(o.x, o.y));
-        obstacles.Add(new Vector2(d.goalZone.x, d.goalZone.y));
-        var camp = new Vector2(d.safeZone.x, d.safeZone.y);
+        foreach (var p in d.supplyPoints)          obstacles.Add(new Vector2(p.x, p.y));
+        foreach (var o in d.viewpoints) obstacles.Add(new Vector2(o.x, o.y));
+        obstacles.Add(new Vector2(d.hutZone.x, d.hutZone.y));
+        var camp = new Vector2(d.campZone.x, d.campZone.y);
         var placed = new List<Vector2>();
 
-        foreach (var z in level.GetComponentsInChildren<CoverZone>()) {
+        foreach (var z in level.GetComponentsInChildren<ShelterZone>()) {
             ClearVisuals(z.transform);
             Circle(z.transform, "Visual", _soft, z.radius * 1.15f, WithA(Forest, 0.25f + 0.35f * z.density), OForest);
 
@@ -229,7 +229,7 @@ public static class LevelStyler {
     // --- непогода (зоны угрозы) -----------------------------------------------------
 
     static void StyleWeather(GameObject level) {
-        foreach (var z in level.GetComponentsInChildren<ThreatZone>()) {
+        foreach (var z in level.GetComponentsInChildren<WeatherZone>()) {
             ClearVisuals(z.transform);
             Circle(z.transform, "Visual", _soft, z.rOuter, WithA(Weather, 0.22f + 0.50f * z.intensity), OWeather);
             Ring(z.transform, DecoPrefix + "Core", z.rInner, 0.09f, WithA(Weather, 0.45f + 0.4f * z.intensity), OWeatherRing, dashed: true);
@@ -247,10 +247,10 @@ public static class LevelStyler {
         new Vector2(-3f, -2f), new Vector2(3f, -2f), new Vector2(0f, 3.5f), new Vector2(-4.5f, 0f), new Vector2(4.5f, 0f),
     };
 
-    static Vector3 CloudOffset(GameObject level, ThreatZone z, float size) {
+    static Vector3 CloudOffset(GameObject level, WeatherZone z, float size) {
         var pins = new List<Vector2>();
-        foreach (var p in level.GetComponentsInChildren<Pickup>())          pins.Add(p.transform.position);
-        foreach (var p in level.GetComponentsInChildren<ObservationPost>()) {
+        foreach (var p in level.GetComponentsInChildren<SupplyPoint>())          pins.Add(p.transform.position);
+        foreach (var p in level.GetComponentsInChildren<Viewpoint>()) {
             pins.Add(p.transform.position);
             if (OverlapsPickup(p)) pins.Add((Vector2)p.transform.position + new Vector2(-1.6f, 1.3f));
         }
@@ -268,7 +268,7 @@ public static class LevelStyler {
     // --- стоянка и приют --------------------------------------------------------
 
     static void StyleCampAndHut(GameObject level) {
-        var camp = level.GetComponentInChildren<SafeZone>();
+        var camp = level.GetComponentInChildren<CampZone>();
         if (camp != null) {
             ClearVisuals(camp.transform);
             Circle(camp.transform, "Visual", _soft, camp.radius + 0.8f, WithA(Camp, 0.32f), OCamp);
@@ -276,7 +276,7 @@ public static class LevelStyler {
             Pin(camp.transform, _tent, 1.5f, Vector2.zero);
             Caption(camp.transform, "СТОЯНКА", new Vector2(0f, -2.6f), Camp);
         }
-        var goal = level.GetComponentInChildren<GoalZone>();
+        var goal = level.GetComponentInChildren<HutZone>();
         if (goal != null) {
             ClearVisuals(goal.transform);
             Circle(goal.transform, DecoPrefix + "Glow", _soft, goal.radius * 2.6f, WithA(Hex(0xFFD54F), 0.75f), OCamp);
@@ -291,7 +291,7 @@ public static class LevelStyler {
     static void StyleWaypoints(GameObject level) {
         foreach (var w in level.GetComponentsInChildren<WaypointMarker>()) {
             ClearVisuals(w.transform);
-            if (w.id == "GOAL") continue;
+            if (w.id == "HUT") continue;
             bool fork = w.id == "FORK";
             Circle(w.transform, DecoPrefix + "Outline", _disc, fork ? 0.6f : 0.3f, Ink, OWaypoint - 1);
             Circle(w.transform, "Visual", _disc, fork ? 0.45f : 0.2f, Color.white, OWaypoint);
@@ -299,7 +299,7 @@ public static class LevelStyler {
     }
 
     static void StyleViewpoints(GameObject level) {
-        foreach (var p in level.GetComponentsInChildren<ObservationPost>()) {
+        foreach (var p in level.GetComponentsInChildren<Viewpoint>()) {
             ClearVisuals(p.transform);
             Ring(p.transform, DecoPrefix + "Ring", 1.9f, 0.12f, WithA(View, 0.8f), OPin - 2, dashed: true);
             // если в той же точке лежит ягодник или родник, значок смотровой сдвигаем в сторону
@@ -308,16 +308,16 @@ public static class LevelStyler {
     }
 
     static void StyleSupplies(GameObject level) {
-        foreach (var p in level.GetComponentsInChildren<Pickup>()) {
+        foreach (var p in level.GetComponentsInChildren<SupplyPoint>()) {
             ClearVisuals(p.transform);
-            bool berry = p.kind == PickupKind.Med;
-            // Pickup.Consume() гасит все дочерние SpriteRenderer — значок с тенью тоже исчезнет
+            bool berry = p.kind == SupplyKind.Berries;
+            // SupplyPoint.Consume() гасит все дочерние SpriteRenderer — значок с тенью тоже исчезнет
             Pin(p.transform, berry ? _berry : _drop, 1.05f, Vector2.zero);
         }
     }
 
-    static bool OverlapsPickup(ObservationPost post) {
-        foreach (var p in Object.FindObjectsByType<Pickup>(FindObjectsSortMode.None))
+    static bool OverlapsPickup(Viewpoint post) {
+        foreach (var p in Object.FindObjectsByType<SupplyPoint>(FindObjectsSortMode.None))
             if (Vector2.Distance(p.transform.position, post.transform.position) < 0.5f) return true;
         return false;
     }

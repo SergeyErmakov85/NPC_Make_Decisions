@@ -1,4 +1,4 @@
-// AgentTriggers.cs — подбор предметов и посещение постов.
+// AgentTriggers.cs — посещение родников, ягодников и смотровых точек.
 using UnityEngine;
 
 namespace CorridorRisk {
@@ -7,23 +7,23 @@ public class AgentTriggers : MonoBehaviour {
 
     [SerializeField] AgentState state;
 
-    public int PickupsCollected { get; private set; }
-    public int PostsVisited     { get; private set; }
+    public int SuppliesCollected { get; private set; }   // сколько раз пополнил запасы или подкрепился
+    public int ViewpointsVisited { get; private set; }   // сколько смотровых точек посетил
 
-    public void ResetCounters() { PickupsCollected = 0; PostsVisited = 0; }
+    public void ResetCounters() { SuppliesCollected = 0; ViewpointsVisited = 0; }
 
     void OnTriggerEnter2D(Collider2D other) {
-        var pickup = other.GetComponent<Pickup>();
-        if (pickup != null && pickup.IsActive) {
-            state.ApplyPickup(pickup);
-            pickup.Consume();
-            PickupsCollected++;
+        var supply = other.GetComponent<SupplyPoint>();
+        if (supply != null && supply.IsActive) {
+            state.ApplySupply(supply);
+            supply.Consume();
+            SuppliesCollected++;
             return;
         }
-        var post = other.GetComponent<ObservationPost>();
-        if (post != null && !post.Visited) {
-            post.MarkVisited();
-            PostsVisited++;
+        var vp = other.GetComponent<Viewpoint>();
+        if (vp != null && !vp.Visited) {
+            vp.MarkVisited();
+            ViewpointsVisited++;
         }
     }
 }

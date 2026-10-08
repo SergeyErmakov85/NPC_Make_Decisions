@@ -1,13 +1,13 @@
-// CoverZone.cs — зона укрытий. Плотность максимальна в центре
-// и к краю падает на 35 %.
+// ShelterZone.cs — участок с укрытиями: лес, навесы, скальные ниши.
+// Доступность укрытий максимальна в центре и к краю падает на 35 %.
 using UnityEngine;
 
 namespace CorridorRisk {
 
-public class CoverZone : MonoBehaviour {
-    public string id = "CV?";
+public class ShelterZone : MonoBehaviour {
+    public string id = "SH?";
     public float radius = 6f;
-    [Range(0f, 1f)] public float density = 0.5f;
+    [Range(0f, 1f)] public float density = 0.5f;     // насколько часто встречаются укрытия
 
     public float Evaluate(Vector2 p) {
         float d = Vector2.Distance(p, (Vector2)transform.position);

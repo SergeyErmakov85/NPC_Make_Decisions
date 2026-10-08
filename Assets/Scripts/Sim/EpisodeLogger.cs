@@ -1,4 +1,4 @@
-// EpisodeLogger.cs — два CSV: по эпизодам и по решениям.
+// EpisodeLogger.cs — два CSV: по походам (эпизодам) и по решениям.
 // Разделитель ';', десятичная точка — файлы потом разбираются тем же ноутбуком.
 using System.Globalization;
 using System.IO;
@@ -24,15 +24,15 @@ public class EpisodeLogger : MonoBehaviour {
 
         _ep = new StreamWriter(Path.Combine(Folder, "episodes.csv"), false, Encoding.UTF8);
         _ep.WriteLine("episode;seed;policySource;spawnNode;" +
-                      "targetHp;targetDist;targetThreat;targetRes;targetCover;" +
-                      "actualHp0;actualDist0;actualThreat0;actualRes0;actualCover0;" +
-                      "globalThreatScale;ambientThreat;" +
-                      "result;decisions;durationSec;finalHp;finalRes;" +
-                      "pickupsCollected;postsVisited;damageTaken;strategyChanges");
+                      "targetEnergy;targetDist;targetWeather;targetSupplies;targetShelter;" +
+                      "actualEnergy0;actualDist0;actualWeather0;actualSupplies0;actualShelter0;" +
+                      "globalWeatherScale;ambientWeather;" +
+                      "result;decisions;durationSec;finalEnergy;finalSupplies;" +
+                      "suppliesCollected;viewpointsVisited;energyLost;strategyChanges");
 
         if (logDecisions) {
             _dec = new StreamWriter(Path.Combine(Folder, "decisions.csv"), false, Encoding.UTF8);
-            _dec.WriteLine("episode;t;step;hp01;dist01;threat01;res01;cover01;" +
+            _dec.WriteLine("episode;t;step;energy01;dist01;weather01;supplies01;shelter01;" +
                            "stateKey;strategy;runnerUp;margin;ambiguous;changed;x;y");
         }
         Debug.Log($"[EpisodeLogger] пишу в {Folder}");
@@ -46,7 +46,7 @@ public class EpisodeLogger : MonoBehaviour {
         _dec.WriteLine(string.Join(";", new[] {
             _episode.ToString(),
             F(Time.time), "0",
-            F(s.Hp01), F(s.Dist01), F(s.Threat01), F(s.Res01), F(s.Cover01),
+            F(s.Energy01), F(s.Dist01), F(s.Weather01), F(s.Supplies01), F(s.Shelter01),
             stateKey, strategy, e.runnerUp ?? "", F(e.margin),
             e.ambiguous ? "1" : "0", changed ? "1" : "0",
             F(pos.x), F(pos.y)
@@ -56,12 +56,12 @@ public class EpisodeLogger : MonoBehaviour {
     public void LogEpisode(EpisodeRecord r) {
         _ep.WriteLine(string.Join(";", new[] {
             r.episode.ToString(), r.seed.ToString(), r.policySource, r.spawnNode,
-            F(r.targetHp), F(r.targetDist), F(r.targetThreat), F(r.targetRes), F(r.targetCover),
-            F(r.actualHp0), F(r.actualDist0), F(r.actualThreat0), F(r.actualRes0), F(r.actualCover0),
-            F(r.globalThreatScale), F(r.ambientThreat),
-            r.result, r.decisions.ToString(), F(r.durationSec), F(r.finalHp), F(r.finalRes),
-            r.pickupsCollected.ToString(), r.postsVisited.ToString(),
-            F(r.damageTaken), r.strategyChanges.ToString()
+            F(r.targetEnergy), F(r.targetDist), F(r.targetWeather), F(r.targetSupplies), F(r.targetShelter),
+            F(r.actualEnergy0), F(r.actualDist0), F(r.actualWeather0), F(r.actualSupplies0), F(r.actualShelter0),
+            F(r.globalWeatherScale), F(r.ambientWeather),
+            r.result, r.decisions.ToString(), F(r.durationSec), F(r.finalEnergy), F(r.finalSupplies),
+            r.suppliesCollected.ToString(), r.viewpointsVisited.ToString(),
+            F(r.energyLost), r.strategyChanges.ToString()
         }));
         _ep.Flush();
         if (_dec != null) _dec.Flush();
@@ -78,11 +78,11 @@ public class EpisodeLogger : MonoBehaviour {
 public struct EpisodeRecord {
     public int    episode, seed;
     public string policySource, spawnNode, result;
-    public float  targetHp, targetDist, targetThreat, targetRes, targetCover;
-    public float  actualHp0, actualDist0, actualThreat0, actualRes0, actualCover0;
-    public float  globalThreatScale, ambientThreat;
-    public int    decisions, pickupsCollected, postsVisited, strategyChanges;
-    public float  durationSec, finalHp, finalRes, damageTaken;
+    public float  targetEnergy, targetDist, targetWeather, targetSupplies, targetShelter;
+    public float  actualEnergy0, actualDist0, actualWeather0, actualSupplies0, actualShelter0;
+    public float  globalWeatherScale, ambientWeather;
+    public int    decisions, suppliesCollected, viewpointsVisited, strategyChanges;
+    public float  durationSec, finalEnergy, finalSupplies, energyLost;
 }
 
 }

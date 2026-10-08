@@ -1,7 +1,15 @@
-// StrategyExecutor.cs — исполнение стратегии: выбор цели, поиск пути, движение.
+// StrategyExecutor.cs — выполнение выбранного варианта действий:
+// выбор цели, поиск пути, ходьба.
 //
-// КЛЮЧЕВАЯ ИДЕЯ: здесь нет слов «маршрут A/B/C». Стратегия задаёт только
-// цель поиска и коэффициенты стоимости ребра; маршрут получается сам.
+// КЛЮЧЕВАЯ ИДЕЯ: здесь нет слов «тропа A/B/C». Вариант действий задаёт только
+// цель поиска и коэффициенты стоимости ребра; тропа выбирается сама.
+//
+//   DIRECT    — идти к приюту напрямик, не обращая внимания на погоду;
+//   SHELTERED — идти к приюту защищённой тропой: через лес и мимо навесов;
+//   SURVEY    — подняться на ближайшую смотровую точку, осмотреться;
+//   GATHER    — дойти до родника (или ягодника, если сил мало);
+//   WAIT      — укрыться поблизости и переждать непогоду;
+//   RETURN    — вернуться к стоянке или назад, туда, где тише.
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,7 +33,7 @@ public class StrategyExecutor : MonoBehaviour {
     [Tooltip("Если задано — стратегия не берётся из политики, а фиксируется. Для приёмочных проверок.")]
     [SerializeField] string forcedStrategy = "";
 
-    public string CurrentStrategy { get; private set; } = "HOLD";
+    public string CurrentStrategy { get; private set; } = "WAIT";
     public int    StrategyChanges { get; private set; }
     public int    Decisions       { get; private set; }
     public string LastStateKey    { get; private set; } = "";
@@ -33,16 +41,17 @@ public class StrategyExecutor : MonoBehaviour {
     float _timer;
     bool  _running;
 
-    // Коэффициенты стоимости ребра и множители скорости — таблица из §6.2 спецификации.
+    // Коэффициенты стоимости ребра (kWeather, kShelter) и множители скорости —
+// таблица из §6.2 спецификации.
     struct Profile { public PathWeights w; public float speed; }
 
     static readonly Dictionary<string, Profile> Profiles = new Dictionary<string, Profile> {
-        { "RUSH",    new Profile { w = new PathWeights(0.0f, 0.0f), speed = 1.00f } },
-        { "STEALTH", new Profile { w = new PathWeights(2.5f, 1.2f), speed = 0.55f } },
-        { "SCOUT",   new Profile { w = new PathWeights(1.5f, 0.8f), speed = 0.75f } },
-        { "FARM",    new Profile { w = new PathWeights(1.8f, 0.8f), speed = 0.80f } },
-        { "HOLD",    new Profile { w = new PathWeights(3.0f, 1.5f), speed = 0.35f } },
-        { "RETREAT", new Profile { w = new PathWeights(3.5f, 1.0f), speed = 0.95f } },
+        { "DIRECT",    new Profile { w = new PathWeights(0.0f, 0.0f), speed = 1.00f } },
+        { "SHELTERED", new Profile { w = new PathWeights(2.5f, 1.2f), speed = 0.55f } },
+        { "SURVEY",    new Profile { w = new PathWeights(1.5f, 0.8f), speed = 0.75f } },
+        { "GATHER",    new Profile { w = new PathWeights(1.8f, 0.8f), speed = 0.80f } },
+        { "WAIT",      new Profile { w = new PathWeights(3.0f, 1.5f), speed = 0.35f } },
+        { "RETURN",    new Profile { w = new PathWeights(3.5f, 1.0f), speed = 0.95f } },
     };
 
     public void BeginEpisode() {
@@ -50,7 +59,7 @@ public class StrategyExecutor : MonoBehaviour {
         _timer = 0f;
         StrategyChanges = 0;
         Decisions = 0;
-        CurrentStrategy = "HOLD";
+        CurrentStrategy = "WAIT";
         motor.Stop();
     }
 
@@ -60,8 +69,8 @@ public class StrategyExecutor : MonoBehaviour {
     public void SetStrategyExternal(string s) {
         if (s != CurrentStrategy) { CurrentStrategy = s; StrategyChanges++; }
         Decisions++;
-        LastStateKey = policy.StateKey(state.Hp01, state.Dist01, state.Threat01,
-                                       state.Res01, state.Cover01);
+        LastStateKey = policy.StateKey(state.Energy01, state.Dist01, state.Weather01,
+                                       state.Supplies01, state.Shelter01);
         Retarget();
         if (label != null) label.Show(CurrentStrategy, 1f, false, LastStateKey);
     }
@@ -82,102 +91,115 @@ public class StrategyExecutor : MonoBehaviour {
         if (!string.IsNullOrEmpty(forcedStrategy)) {
             next = forcedStrategy;
             entry = new PolicyEntry { key = "forced", strategy = next, margin = 1f, ambiguous = false };
-            LastStateKey = policy.StateKey(state.Hp01, state.Dist01, state.Threat01,
-                                           state.Res01, state.Cover01);
+            LastStateKey = policy.StateKey(state.Energy01, state.Dist01, state.Weather01,
+                                           state.Supplies01, state.Shelter01);
         } else {
-            next = policy.Decide(state.Hp01, state.Dist01, state.Threat01,
-                                 state.Res01, state.Cover01, out entry);
+            next = policy.Decide(state.Energy01, state.Dist01, state.Weather01,
+                                 state.Supplies01, state.Shelter01, out entry);
+            if (entry == null)                        // состояния нет в таблице — fallback
+                entry = new PolicyEntry { key = "?", strategy = next, margin = 1f, ambiguous = false };
             LastStateKey = entry.key ?? "?";
         }
 
         bool changed = false;
-        // Гистерезис: не меняем стратегию, если новая выигрывает еле-еле.
-        // Без него агент «дрожит» на границах бинов.
-        if (next != CurrentStrategy && entry.margin >= balance.hysteresis) {
+        // Гистерезис: не меняем стратегию, если новая выигрывает у ТЕКУЩЕЙ еле-еле.
+        // Без него путешественник «мечется» на границах бинов.
+        // Сравниваем баллы новой и текущей стратегии, а не entry.margin: в неоднозначных
+        // состояниях margin < ambiguityThreshold < hysteresis, и путешественник навсегда
+        // застревал бы в стартовом WAIT. Первое решение эпизода принимается всегда.
+        if (next != CurrentStrategy &&
+            (Decisions == 1 || ScoreGain(entry, next) >= balance.hysteresis)) {
             CurrentStrategy = next;
             StrategyChanges++;
             changed = true;
         }
 
         Retarget();                                   // путь пересчитываем каждое решение:
-                                                      // цели (предметы, посты) могли измениться
+                                                      // цели (родники, смотровые точки) могли измениться
         if (label != null)
             label.Show(CurrentStrategy, entry.margin, entry.ambiguous, LastStateKey);
         if (logger != null)
             logger.LogDecision(state, entry, CurrentStrategy, LastStateKey, changed, transform.position);
     }
 
+    /// На сколько балл стратегии next выше балла текущей стратегии в этом состоянии.
+    float ScoreGain(PolicyEntry entry, string next) {
+        if (entry.scores == null || entry.scores.Length == 0) return float.MaxValue;   // forced / fallback
+        return entry.scores[policy.IndexOfStrategy(next)]
+             - entry.scores[policy.IndexOfStrategy(CurrentStrategy)];
+    }
+
     void Retarget() {
         var prof = Profiles.TryGetValue(CurrentStrategy, out var p)
-                 ? p : Profiles["HOLD"];
+                 ? p : Profiles["WAIT"];
         int target = TargetNodeFor(CurrentStrategy);
 
-        if (CurrentStrategy == "HOLD" && target == graph.NearestNode(transform.position)) {
-            motor.Stop();                             // уже в укрытии — стоим
+        if (CurrentStrategy == "WAIT" && target == graph.NearestNode(transform.position)) {
+            motor.Stop();                             // уже в укрытии — пережидаем на месте
             return;
         }
 
         var path = graph.FindPath(transform.position, target, prof.w,
-                                  state.globalThreatScale, state.ambientThreat);
+                                  state.globalWeatherScale, state.ambientWeather);
         motor.SetPath(path, prof.speed);
     }
 
     int TargetNodeFor(string strategy) {
         Vector2 p = transform.position;
         switch (strategy) {
-            case "RUSH":
-            case "STEALTH":
-                return graph.IndexOf("GOAL");
+            case "DIRECT":
+            case "SHELTERED":
+                return graph.IndexOf("HUT");
 
-            case "SCOUT": {
+            case "SURVEY": {
                 int best = -1; float bestD = float.MaxValue;
-                foreach (var o in LevelRegistry.Posts) {
-                    if (o.Visited) continue;
-                    int n = graph.NearestNode(o.transform.position);
-                    float d = Vector2.Distance(p, o.transform.position);
+                foreach (var v in LevelRegistry.Viewpoints) {
+                    if (v.Visited) continue;
+                    int n = graph.NearestNode(v.transform.position);
+                    float d = Vector2.Distance(p, v.transform.position);
                     if (d < bestD) { bestD = d; best = n; }
                 }
-                return best >= 0 ? best : graph.IndexOf("GOAL");
+                return best >= 0 ? best : graph.IndexOf("HUT");
             }
 
-            case "FARM": {
-                bool needMed = state.Hp01 < 0.5f;
+            case "GATHER": {
+                bool needFood = state.Energy01 < 0.5f;
                 int best = -1; float bestD = float.MaxValue;
-                foreach (var pu in LevelRegistry.Pickups) {
-                    if (!pu.IsActive) continue;
-                    if (pu.kind == PickupKind.Med && !needMed) continue;
-                    float d = Vector2.Distance(p, pu.transform.position);
-                    if (d < bestD) { bestD = d; best = graph.NearestNode(pu.transform.position); }
+                foreach (var sp in LevelRegistry.SupplyPoints) {
+                    if (!sp.IsActive) continue;
+                    if (sp.kind == SupplyKind.Berries && !needFood) continue;   // ягодник — только если сил мало
+                    float d = Vector2.Distance(p, sp.transform.position);
+                    if (d < bestD) { bestD = d; best = graph.NearestNode(sp.transform.position); }
                 }
-                return best >= 0 ? best : graph.IndexOf("GOAL");
+                return best >= 0 ? best : graph.IndexOf("HUT");
             }
 
-            case "HOLD": {
-                int best = graph.NearestNode(p); float bestCover = graph.NodeCover(best);
+            case "WAIT": {
+                int best = graph.NearestNode(p); float bestShelter = graph.NodeShelter(best);
                 for (int i = 0; i < graph.NodeCount; i++) {
                     if (Vector2.Distance(p, graph.PositionOf(i)) > 12f) continue;
-                    if (graph.NodeCover(i) > bestCover) { bestCover = graph.NodeCover(i); best = i; }
+                    if (graph.NodeShelter(i) > bestShelter) { bestShelter = graph.NodeShelter(i); best = i; }
                 }
                 return best;
             }
 
-            case "RETREAT": {
-                var safe = LevelRegistry.Safe;
-                if (safe != null && Vector2.Distance(p, safe.transform.position) < 20f)
-                    return graph.NearestNode(safe.transform.position);
-                // иначе — ближайший узел «назад» (дальше от цели) с минимальной угрозой
+            case "RETURN": {
+                var camp = LevelRegistry.Camp;
+                if (camp != null && Vector2.Distance(p, camp.transform.position) < 20f)
+                    return graph.NearestNode(camp.transform.position);
+                // иначе — ближайший узел «назад» (дальше от приюта), где непогода слабее всего
                 int cur = graph.NearestNode(p);
-                int best = cur; float bestThreat = float.MaxValue;
+                int best = cur; float bestWeather = float.MaxValue;
                 for (int i = 0; i < graph.NodeCount; i++) {
                     if (Vector2.Distance(p, graph.PositionOf(i)) > 20f) continue;
                     if (graph.NodeDist01(i) <= graph.NodeDist01(cur)) continue;
-                    float t = graph.NodeThreatRaw(i);
-                    if (t < bestThreat) { bestThreat = t; best = i; }
+                    float t = graph.NodeWeatherRaw(i);
+                    if (t < bestWeather) { bestWeather = t; best = i; }
                 }
                 return best;
             }
         }
-        return graph.IndexOf("GOAL");
+        return graph.IndexOf("HUT");
     }
 }
 

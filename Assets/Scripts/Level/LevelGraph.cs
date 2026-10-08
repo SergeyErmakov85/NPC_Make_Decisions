@@ -1,19 +1,21 @@
 // LevelGraph.cs — граф путевых точек: загрузка из JSON, атрибуты узлов,
-// расстояние до цели и поиск пути со стратегийно-зависимой стоимостью рёбер.
+// расстояние до приюта и поиск пути, где стоимость рёбер зависит от выбранного
+// варианта действий.
 //
 // Это центральный класс сцены. Он отвечает за:
-//   * dist01 — нормированную дистанцию до цели (переменную состояния);
-//   * поиск пути, из которого САМ СОБОЙ получается выбор маршрута A/B/C.
+//   * dist01 — нормированное расстояние до приюта (переменную состояния);
+//   * поиск пути, из которого САМ СОБОЙ получается выбор тропы A/B/C.
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace CorridorRisk {
 
-/// Коэффициенты стоимости ребра для конкретной стратегии.
+/// Коэффициенты стоимости ребра для конкретного варианта действий:
+/// kWeather — насколько вариант избегает непогоды, kShelter — насколько тянется к укрытиям.
 public struct PathWeights {
-    public float kThreat;
-    public float kCover;
-    public PathWeights(float kThreat, float kCover) { this.kThreat = kThreat; this.kCover = kCover; }
+    public float kWeather;
+    public float kShelter;
+    public PathWeights(float kWeather, float kShelter) { this.kWeather = kWeather; this.kShelter = kShelter; }
 }
 
 public class LevelGraph : MonoBehaviour {
@@ -31,15 +33,15 @@ public class LevelGraph : MonoBehaviour {
     int          _n;
     string[]     _ids;
     Vector2[]    _pos;
-    float[]      _distToGoal;      // геометрическая длина кратчайшего пути до GOAL
-    float[]      _nodeThreatRaw;   // сырая угроза в узле (scale = 1, ambient = 0)
-    float[]      _nodeCover;
+    float[]      _distToHut;      // геометрическая длина кратчайшего пути до HUT
+    float[]      _nodeWeatherRaw;   // сырая сила непогоды в узле (scale = 1, ambient = 0)
+    float[]      _nodeShelter;
     List<int>[]  _adj;             // индексы соседей
     List<float>[] _adjLen;         // длины рёбер
-    List<float>[] _adjThreatRaw;   // средняя сырая угроза вдоль ребра
-    List<float>[] _adjCover;       // среднее укрытие вдоль ребра
+    List<float>[] _adjWeatherRaw;   // средняя сила непогоды вдоль ребра
+    List<float>[] _adjShelter;       // среднее укрытие вдоль ребра
     Dictionary<string, int> _index;
-    int _goalIndex;
+    int _hutIndex;
 
     // буферы Дейкстры, чтобы не выделять память каждый вызов
     float[] _dist; int[] _prev; bool[] _done;
@@ -62,14 +64,14 @@ public class LevelGraph : MonoBehaviour {
             _pos[i] = new Vector2(Data.nodes[i].x, Data.nodes[i].y);
             _index[_ids[i]] = i;
         }
-        if (!_index.TryGetValue("GOAL", out _goalIndex))
-            Debug.LogError("[LevelGraph] в графе нет узла GOAL");
+        if (!_index.TryGetValue("HUT", out _hutIndex))
+            Debug.LogError("[LevelGraph] в графе нет узла HUT");
 
         _adj = new List<int>[_n]; _adjLen = new List<float>[_n];
-        _adjThreatRaw = new List<float>[_n]; _adjCover = new List<float>[_n];
+        _adjWeatherRaw = new List<float>[_n]; _adjShelter = new List<float>[_n];
         for (int i = 0; i < _n; i++) {
             _adj[i] = new List<int>(); _adjLen[i] = new List<float>();
-            _adjThreatRaw[i] = new List<float>(); _adjCover[i] = new List<float>();
+            _adjWeatherRaw[i] = new List<float>(); _adjShelter[i] = new List<float>();
         }
 
         foreach (var e in Data.edges) {
@@ -82,34 +84,34 @@ public class LevelGraph : MonoBehaviour {
 
         // Атрибуты узлов считаем от реальных зон на сцене, а не из JSON:
         // если преподаватель подвинул зону в редакторе, граф это учтёт.
-        _nodeThreatRaw = new float[_n];
-        _nodeCover = new float[_n];
+        _nodeWeatherRaw = new float[_n];
+        _nodeShelter = new float[_n];
         for (int i = 0; i < _n; i++) {
-            _nodeThreatRaw[i] = LevelRegistry.RawThreat(_pos[i]);
-            _nodeCover[i]     = LevelRegistry.Cover(_pos[i]);
+            _nodeWeatherRaw[i] = LevelRegistry.RawWeather(_pos[i]);
+            _nodeShelter[i]     = LevelRegistry.Shelter(_pos[i]);
         }
 
         _dist = new float[_n]; _prev = new int[_n]; _done = new bool[_n];
-        _distToGoal = DijkstraGeometric(_goalIndex);
+        _distToHut = DijkstraGeometric(_hutIndex);
 
         Debug.Log($"[LevelGraph] узлов {_n}, рёбер {Data.edges.Length}, D_MAX = {Data.dMax}");
     }
 
     void AddDir(int from, int to, float len, float th, float cv) {
         _adj[from].Add(to); _adjLen[from].Add(len);
-        _adjThreatRaw[from].Add(th); _adjCover[from].Add(cv);
+        _adjWeatherRaw[from].Add(th); _adjShelter[from].Add(cv);
     }
 
     /// Среднее по пяти равноотстоящим точкам внутри ребра.
-    static void SampleEdge(Vector2 a, Vector2 b, out float threat, out float cover) {
-        threat = 0f; cover = 0f;
+    static void SampleEdge(Vector2 a, Vector2 b, out float weather, out float shelter) {
+        weather = 0f; shelter = 0f;
         const int k = 5;
         for (int i = 1; i <= k; i++) {
             Vector2 p = Vector2.Lerp(a, b, i / (float)(k + 1));
-            threat += LevelRegistry.RawThreat(p);
-            cover  += LevelRegistry.Cover(p);
+            weather += LevelRegistry.RawWeather(p);
+            shelter  += LevelRegistry.Shelter(p);
         }
-        threat /= k; cover /= k;
+        weather /= k; shelter /= k;
     }
 
     // --- публичный API ---------------------------------------------------------
@@ -117,9 +119,9 @@ public class LevelGraph : MonoBehaviour {
     public int  NodeCount => _n;
     public string IdOf(int i) => _ids[i];
     public Vector2 PositionOf(int i) => _pos[i];
-    public float NodeThreatRaw(int i) => _nodeThreatRaw[i];
-    public float NodeCover(int i) => _nodeCover[i];
-    public float NodeDist01(int i) => Mathf.Clamp01(_distToGoal[i] / DMax);
+    public float NodeWeatherRaw(int i) => _nodeWeatherRaw[i];
+    public float NodeShelter(int i) => _nodeShelter[i];
+    public float NodeDist01(int i) => Mathf.Clamp01(_distToHut[i] / DMax);
     public int  IndexOf(string id) => _index.TryGetValue(id, out int i) ? i : -1;
 
     public int NearestNode(Vector2 p) {
@@ -131,16 +133,16 @@ public class LevelGraph : MonoBehaviour {
         return best;
     }
 
-    /// Нормированная дистанция до цели: длина по графу от ближайшего узла + подход к нему.
-    public float PathDistanceToGoal(Vector2 p) {
+    /// Нормированное расстояние до приюта: длина по графу от ближайшего узла + подход к нему.
+    public float PathDistanceToHut(Vector2 p) {
         int i = NearestNode(p);
-        return _distToGoal[i] + Vector2.Distance(p, _pos[i]);
+        return _distToHut[i] + Vector2.Distance(p, _pos[i]);
     }
 
-    /// Путь от позиции до целевого узла с учётом весов стратегии.
-    /// Возвращает список мировых точек, первая — ближайший узел, последняя — цель.
+    /// Путь от позиции до целевого узла с учётом весов варианта действий.
+    /// Возвращает список мировых точек, первая — ближайший узел, последняя — целевой узел.
     public List<Vector2> FindPath(Vector2 from, int targetNode, PathWeights w,
-                                  float threatScale, float ambientThreat) {
+                                  float weatherScale, float ambientWeather) {
         var result = new List<Vector2>();
         if (targetNode < 0) return result;
         int src = NearestNode(from);
@@ -160,9 +162,9 @@ public class LevelGraph : MonoBehaviour {
             for (int k = 0; k < _adj[u].Count; k++) {
                 int v = _adj[u][k];
                 if (_done[v]) continue;
-                float th = Mathf.Clamp01(_adjThreatRaw[u][k] * threatScale + ambientThreat);
-                float cv = _adjCover[u][k];
-                float cost = _adjLen[u][k] * (1f + w.kThreat * th) / (1f + w.kCover * cv);
+                float th = Mathf.Clamp01(_adjWeatherRaw[u][k] * weatherScale + ambientWeather);
+                float cv = _adjShelter[u][k];
+                float cost = _adjLen[u][k] * (1f + w.kWeather * th) / (1f + w.kShelter * cv);
                 if (_dist[u] + cost < _dist[v]) { _dist[v] = _dist[u] + cost; _prev[v] = u; }
             }
         }
