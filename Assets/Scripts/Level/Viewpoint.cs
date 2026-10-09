@@ -18,7 +18,7 @@ public class Viewpoint : MonoBehaviour {
     public void ResetViewpoint() { Visited = false; }
     public void MarkVisited()    { Visited = true; }
 
-    void OnDrawGizmos() {
+    void OnDrawGizmosSelected() {
         Gizmos.color = new Color(0.55f, 0.35f, 0.95f);
         Gizmos.DrawWireSphere(transform.position, 1.5f);
     }

@@ -56,6 +56,11 @@ public static class SceneValidator {
             Check(state.GetComponent<Collider2D>() != null, "Collider2D на путешественнике", problems, ok);
         }
 
+        if (Object.FindFirstObjectByType<SituationPanel>() == null)
+            ok.Add("SituationPanel не на сцене — добавится сам при Play");
+        else
+            ok.Add("SituationPanel на сцене");
+
         var sb = new StringBuilder();
         sb.AppendLine(problems.Count == 0 ? "СЦЕНА СОБРАНА ПРАВИЛЬНО" : "НАЙДЕНЫ ПРОБЛЕМЫ:");
         foreach (var p in problems) sb.AppendLine("  ✗ " + p);

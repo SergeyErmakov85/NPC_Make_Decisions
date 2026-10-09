@@ -32,7 +32,7 @@ public class SupplyPoint : MonoBehaviour {
         foreach (var r in GetComponentsInChildren<SpriteRenderer>()) r.enabled = false;
     }
 
-    void OnDrawGizmos() {
+    void OnDrawGizmosSelected() {
         Gizmos.color = kind == SupplyKind.Spring ? new Color(0.2f, 0.7f, 1f) : new Color(0.75f, 0.2f, 0.55f);
         Gizmos.DrawWireCube(transform.position, Vector3.one * 1.6f);
     }

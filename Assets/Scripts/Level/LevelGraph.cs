@@ -195,7 +195,7 @@ public class LevelGraph : MonoBehaviour {
         return d;
     }
 
-    void OnDrawGizmos() {
+    void OnDrawGizmosSelected() {
         if (!drawGizmos || Data == null || _pos == null) return;
         Gizmos.color = new Color(0.6f, 0.65f, 0.75f, 0.7f);
         foreach (var e in Data.edges) {

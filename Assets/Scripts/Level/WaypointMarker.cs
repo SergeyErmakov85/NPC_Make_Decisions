@@ -6,7 +6,7 @@ namespace CorridorRisk {
 public class WaypointMarker : MonoBehaviour {
     public string id = "N?";
 
-    void OnDrawGizmos() {
+    void OnDrawGizmosSelected() {
         Gizmos.color = id == "HUT" ? Color.green : new Color(0.1f, 0.1f, 0.15f);
         Gizmos.DrawSphere(transform.position, 0.4f);
     }

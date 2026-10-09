@@ -53,10 +53,30 @@ public class DecisionPolicy : MonoBehaviour {
         return string.Join("|", parts);
     }
 
+    public string[] StateVars => _file.stateVars;
+
+    /// Сколько бинов у переменной (границ + 1).
+    public int BinCount(string varName) => _edges.TryGetValue(varName, out var e) ? e.Length + 1 : 1;
+
+    /// Середина бина — «типичное» значение переменной для заданной цифры ключа.
+    public float BinCenter(string varName, int bin) {
+        if (!_edges.TryGetValue(varName, out var e)) return 0.5f;
+        bin = Mathf.Clamp(bin, 0, e.Length);
+        float lo = bin == 0        ? 0f : e[bin - 1];
+        float hi = bin == e.Length ? 1f : e[bin];
+        return 0.5f * (lo + hi);
+    }
+
+    public bool TryGetEntry(string key, out PolicyEntry entry) => _index.TryGetValue(key, out entry);
+
     /// Главный метод: состояние → код стратегии.
     public string Decide(float energy, float dist, float weather, float supplies, float shelter,
                          out PolicyEntry entry) {
-        string key = StateKey(energy, dist, weather, supplies, shelter);
+        return DecideByKey(StateKey(energy, dist, weather, supplies, shelter), out entry);
+    }
+
+    /// То же, но по готовому ключу ситуации (например, заданному вручную в панели).
+    public string DecideByKey(string key, out PolicyEntry entry) {
         if (!_index.TryGetValue(key, out entry)) {
             Debug.LogWarning($"[DecisionPolicy] нет записи {key} → fallback {_file.fallback}");
             return _file.fallback;

@@ -38,8 +38,13 @@ public class StrategyExecutor : MonoBehaviour {
     public int    Decisions       { get; private set; }
     public string LastStateKey    { get; private set; } = "";
 
+    /// Ключ ситуации, заданный вручную (панель SituationPanel). Пока он не пуст,
+    /// политика опрашивается по нему, а не по реальному состоянию путешественника.
+    public string OverrideKey     { get; private set; } = "";
+
     float _timer;
     bool  _running;
+    bool  _forceNext;
 
     // Коэффициенты стоимости ребра (kWeather, kShelter) и множители скорости —
 // таблица из §6.2 спецификации.
@@ -64,6 +69,16 @@ public class StrategyExecutor : MonoBehaviour {
     }
 
     public void EndEpisode() { _running = false; motor.Stop(); }
+
+    public void SetOverrideKey(string key) { OverrideKey = key ?? ""; }
+
+    /// Принять решение немедленно (работает и на паузе). force — без гистерезиса.
+    public void DecideNow(bool force) {
+        if (!_running || externalControl) return;
+        _forceNext = force;
+        _timer = balance.decisionInterval;
+        Decide();
+    }
 
     /// Уровень B: стратегию назначает ML-Agents.
     public void SetStrategyExternal(string s) {
@@ -93,6 +108,11 @@ public class StrategyExecutor : MonoBehaviour {
             entry = new PolicyEntry { key = "forced", strategy = next, margin = 1f, ambiguous = false };
             LastStateKey = policy.StateKey(state.Energy01, state.Dist01, state.Weather01,
                                            state.Supplies01, state.Shelter01);
+        } else if (!string.IsNullOrEmpty(OverrideKey)) {
+            next = policy.DecideByKey(OverrideKey, out entry);
+            if (entry == null)
+                entry = new PolicyEntry { key = OverrideKey, strategy = next, margin = 1f, ambiguous = false };
+            LastStateKey = OverrideKey;
         } else {
             next = policy.Decide(state.Energy01, state.Dist01, state.Weather01,
                                  state.Supplies01, state.Shelter01, out entry);
@@ -108,16 +128,18 @@ public class StrategyExecutor : MonoBehaviour {
         // состояниях margin < ambiguityThreshold < hysteresis, и путешественник навсегда
         // застревал бы в стартовом WAIT. Первое решение эпизода принимается всегда.
         if (next != CurrentStrategy &&
-            (Decisions == 1 || ScoreGain(entry, next) >= balance.hysteresis)) {
+            (Decisions == 1 || _forceNext || ScoreGain(entry, next) >= balance.hysteresis)) {
             CurrentStrategy = next;
             StrategyChanges++;
             changed = true;
         }
+        _forceNext = false;
 
         Retarget();                                   // путь пересчитываем каждое решение:
                                                       // цели (родники, смотровые точки) могли измениться
         if (label != null)
-            label.Show(CurrentStrategy, entry.margin, entry.ambiguous, LastStateKey);
+            label.Show(CurrentStrategy, entry.margin, entry.ambiguous,
+                       string.IsNullOrEmpty(OverrideKey) ? LastStateKey : LastStateKey + " MANUAL");
         if (logger != null)
             logger.LogDecision(state, entry, CurrentStrategy, LastStateKey, changed, transform.position);
     }

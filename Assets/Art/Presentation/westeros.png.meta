@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: fd3e5f3b67231b44c8fc0b84d11fd447
+guid: d7ee48dad41d3154c8c76f87776db4bc
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8765297898444631108
-    second: terrain_0
+      213: 9003988492192276785
+    second: westeros_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: terrain_0
+      name: westeros_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 44c25438ff794a970800000000000000
-      internalID: 8765297898444631108
+      spriteID: 13163d614d794fc70800000000000000
+      internalID: 9003988492192276785
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      terrain_0: 8765297898444631108
+      westeros_0: 9003988492192276785
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

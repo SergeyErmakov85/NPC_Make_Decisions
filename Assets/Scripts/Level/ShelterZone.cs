@@ -15,7 +15,7 @@ public class ShelterZone : MonoBehaviour {
         return density * (1f - 0.35f * d / radius);
     }
 
-    void OnDrawGizmos() {
+    void OnDrawGizmosSelected() {
         Gizmos.color = new Color(0.1f, 0.8f, 0.3f, 0.45f);
         Gizmos.DrawWireSphere(transform.position, radius);
     }

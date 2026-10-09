@@ -55,6 +55,16 @@ public class EpisodeManager : MonoBehaviour {
 
     public string LastResult { get; private set; } = "";
     public bool   IsActive => _active;
+    public int    EpisodeIndex  => _episode;
+    public float  Elapsed       => _active ? Time.time - _t0 : 0f;
+    public float  MaxTime       => balance.maxEpisodeTime;
+    public float  BaseTimeScale => Mathf.Max(0.1f, balance.timeScale);
+
+    /// Поход закончился: (номер похода, исход). Нужно панели SituationPanel.
+    public event System.Action<int, string> EpisodeFinished;
+
+    /// Прервать текущий поход (без записи в лог) и начать следующий из заданной ситуации.
+    public void RestartEpisode() { if (!externalEpisodeControl) StartEpisode(_episode + 1); }
 
     void Start() {
         LevelRegistry.EnsureBuilt();
@@ -172,6 +182,7 @@ public class EpisodeManager : MonoBehaviour {
         _rec.energyLost        = balance.energyMax * (_rec.targetEnergy - state.Energy01);
         _rec.strategyChanges   = executor.StrategyChanges;
         logger.LogEpisode(_rec);
+        EpisodeFinished?.Invoke(_episode, result);
 
         if (externalEpisodeControl) return;          // следующий эпизод запустит DecisionAgent
 

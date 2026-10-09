@@ -18,7 +18,7 @@ public class WeatherZone : MonoBehaviour {
         return intensity * (1f - (d - rInner) / (rOuter - rInner));
     }
 
-    void OnDrawGizmos() {
+    void OnDrawGizmosSelected() {
         Gizmos.color = new Color(0.25f, 0.45f, 0.85f, 0.55f);   // сине-серые «тучи»
         Gizmos.DrawWireSphere(transform.position, rInner);
         Gizmos.color = new Color(0.25f, 0.45f, 0.85f, 0.20f);

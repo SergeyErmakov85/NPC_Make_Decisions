@@ -66,7 +66,7 @@ public class AgentMotor : MonoBehaviour {
         state.supplies -= balance.kDrain * 0.01f * balance.suppliesMax * _speedMul * Time.fixedDeltaTime;
     }
 
-    void OnDrawGizmos() {
+    void OnDrawGizmosSelected() {
         if (_path == null || _path.Count == 0) return;
         Gizmos.color = Color.cyan;
         for (int i = Mathf.Max(0, _leg); i < _path.Count - 1; i++)

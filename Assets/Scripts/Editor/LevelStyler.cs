@@ -2,7 +2,9 @@
 // в мирном сюжете ноутбука v3: путешественник идёт к горному приюту.
 //
 // LevelBuilder отвечает за геометрию и логику, этот скрипт — только за вид.
-// Уровень рисуется как туристическая карта:
+// Фон — карта Вестероса: своя картинка Assets/Art/Westeros/westeros.png (или .jpg),
+// а если её нет — стилизованная карта, нарисованная этим скриптом.
+// Поверх фона уровень рисуется как туристическая карта:
 //   WeatherZone   → участки непогоды (облако с дождём, сила = intensity);
 //   ShelterZone   → лес (деревья, плотность = density);
 //   SupplyPoint   → родники (запас воды и еды) / ягодники (силы);
@@ -28,6 +30,8 @@ public static class LevelStyler {
     const string DecoRoot     = "Presentation";
     const string DecoPrefix   = "Deco_";
     const string ArtFolder    = "Assets/Art/Presentation";
+    // своя карта Вестероса: положите сюда westeros.png или westeros.jpg — она станет фоном
+    const string WesterosFolder = "Assets/Art/Westeros";
     const string UnlitMatPath =
         "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Unlit-Default.mat";
 
@@ -46,6 +50,7 @@ public static class LevelStyler {
     static readonly Color RouteA     = Hex(0x1565C0);   // защищённая тропа
     static readonly Color RouteB     = Hex(0xEF8A17);   // мимо родников
     static readonly Color RouteC     = Hex(0xD62839);   // напрямик
+    static readonly Color MapInk     = Hex(0x5A4630);   // надписи и берега карты Вестероса
 
     // порядок отрисовки (sortingOrder)
     const int OPaper = -100, OFrame = -91, OTerrain = -90,
@@ -57,6 +62,7 @@ public static class LevelStyler {
                   _tree, _cloud, _drop, _berry, _view, _tent, _hut;
     static Material _unlit;
     static Font _font;
+    static bool _customMap;      // фон — картинка из WesterosFolder, а не нарисованная карта
     static Rect? _clip;          // границы карты: всё, что за ними, не рисуем
 
     [MenuItem("CorridorRisk/Оформить уровень для презентации")]
@@ -114,8 +120,17 @@ public static class LevelStyler {
         frame.drawMode = SpriteDrawMode.Sliced;
         frame.size = new Vector2(w + 0.7f, h + 0.7f);
 
-        var terrain = AddSprite(deco, "Terrain", _terrain, Color.white, OTerrain);
-        terrain.transform.position = c;
+        // фон — карта Вестероса: своя картинка заполняет поле целиком (лишнее обрезает маска)
+        var map = AddSprite(deco, "WesterosMap", _terrain, Color.white, OTerrain);
+        map.transform.position = c;
+        if (_customMap) {
+            var size = _terrain.bounds.size;
+            float s = Mathf.Max(w / size.x, h / size.y);
+            map.transform.localScale = new Vector3(s, s, 1f);
+            map.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+        } else {
+            BuildMapLabels(deco);
+        }
 
         // маска карты: заливки зон не вылезают на заголовок и легенду
         var mask = new GameObject("MapMask").AddComponent<SpriteMask>();
@@ -125,19 +140,98 @@ public static class LevelStyler {
         mask.transform.localScale = new Vector3(w, h, 1f);
     }
 
-    // высота рельефа в точке (x, y): общий подъём к приюту, гора у приюта и холмы
-    static float Height(float x, float y) {
-        float hgt = 0.012f * (x + 32f);
-        hgt += 0.60f * Gauss(x - 27f, y - 1f, 7.5f);
-        hgt += 0.30f * Gauss(x - 6f,  y - 19f, 9f);
-        hgt += 0.26f * Gauss(x + 15f, y + 17f, 7f);
-        hgt += 0.18f * Gauss(x - 14f, y + 16f, 6f);
-        hgt += 0.12f * Gauss(x + 22f, y - 14f, 5f);
-        hgt += 0.035f * Mathf.Sin(0.35f * x + 1.3f) * Mathf.Sin(0.42f * y + 0.7f);
-        return hgt;
+    // --- карта Вестероса (рисуется, если своей картинки нет) ------------------------
+    // Координаты — world units уровня (x ∈ [-32, 32], y ∈ [-18, 18]): слева Вестерос,
+    // посередине Узкое море, справа берег Эссоса. Контуры стилизованные, «от руки».
+
+    static readonly Vector2[] WesterosCoast = {
+        new Vector2(-25.5f, 19f), new Vector2(-24.6f, 15.5f), new Vector2(-23.2f, 13.2f), new Vector2(-23.6f, 11f),
+        new Vector2(-25.2f, 9.2f), new Vector2(-24.2f, 7.4f), new Vector2(-25f, 5.6f), new Vector2(-23.4f, 3.8f),
+        new Vector2(-24.4f, 2.2f), new Vector2(-21.8f, 0.6f), new Vector2(-19.2f, -0.4f), new Vector2(-21.6f, -1.6f),
+        new Vector2(-24.2f, -2.6f), new Vector2(-24.8f, -5f), new Vector2(-23.6f, -7f), new Vector2(-24.6f, -9.4f),
+        new Vector2(-23.2f, -11.6f), new Vector2(-21.4f, -13.4f), new Vector2(-18.6f, -14.6f), new Vector2(-15f, -15.6f),
+        new Vector2(-11f, -15.2f), new Vector2(-7.4f, -15.8f), new Vector2(-4.6f, -15f), new Vector2(-4.2f, -13.6f),
+        new Vector2(-6.4f, -12.6f), new Vector2(-8.6f, -11.8f), new Vector2(-6.2f, -10.4f), new Vector2(-5.4f, -8.6f),
+        new Vector2(-7.4f, -7.2f), new Vector2(-10.2f, -6.4f), new Vector2(-10.6f, -5.2f), new Vector2(-8.4f, -4.4f),
+        new Vector2(-7.2f, -3f), new Vector2(-9.4f, -1.6f), new Vector2(-12.6f, -0.6f), new Vector2(-14.8f, 0.4f),
+        new Vector2(-12.4f, 1.6f), new Vector2(-10.4f, 3.2f), new Vector2(-8.2f, 4.2f), new Vector2(-9f, 6.4f),
+        new Vector2(-7.4f, 8.2f), new Vector2(-8.8f, 9.6f), new Vector2(-7f, 11.2f), new Vector2(-7.6f, 13.4f),
+        new Vector2(-5.8f, 15.6f), new Vector2(-6.4f, 19f),
+    };
+
+    static readonly Vector2[] EssosCoast = {
+        new Vector2(5.4f, 19f), new Vector2(4.4f, 16.2f), new Vector2(5.6f, 14.6f), new Vector2(3.8f, 12.8f),
+        new Vector2(3.2f, 10.2f), new Vector2(1.8f, 7.6f), new Vector2(2.4f, 5f), new Vector2(1.6f, 2.6f),
+        new Vector2(3.4f, 0.4f), new Vector2(2.8f, -2.6f), new Vector2(4.4f, -5.4f), new Vector2(6.6f, -7.6f),
+        new Vector2(8.6f, -9.8f), new Vector2(12.4f, -11.2f), new Vector2(17.6f, -12.4f), new Vector2(23f, -12.6f),
+        new Vector2(28f, -13.8f), new Vector2(34f, -13.2f), new Vector2(34f, 19f),
+    };
+
+    // острова: (x, y, радиус)
+    static readonly Vector3[] Isles = {
+        new Vector3(-27.2f, -1.4f, 0.9f), new Vector3(-26.4f, -3.2f, 0.6f), new Vector3(-28f, -3f, 0.45f),  // Железные острова
+        new Vector3(-26.4f, 8.6f, 0.75f),                                                                  // Медвежий остров
+        new Vector3(-4.2f, 14.2f, 1.1f),                                                                   // Скагос
+        new Vector3(-4.4f, -9.4f, 0.55f),                                                                  // Тарт
+        new Vector3(-24.6f, -13.6f, 0.6f),                                                                 // Арбор
+        new Vector3(-2.4f, -14.6f, 0.35f), new Vector3(-1.2f, -14f, 0.3f), new Vector3(0f, -14.5f, 0.3f), // Ступени
+    };
+
+    // Стена: от западного до восточного берега
+    static readonly Vector2 WallA = new Vector2(-23.7f, 11f), WallB = new Vector2(-6.8f, 11.2f);
+
+    // знаковое расстояние до берега: < 0 — суша, > 0 — море
+    static float CoastDistance(Vector2 p) {
+        float sd = PolygonDistance(p, WesterosCoast);
+        sd = Mathf.Min(sd, PolygonDistance(p, EssosCoast));
+        foreach (var i in Isles) sd = Mathf.Min(sd, Vector2.Distance(p, i) - i.z);
+        return sd;
     }
 
-    static float Gauss(float dx, float dy, float s) => Mathf.Exp(-(dx * dx + dy * dy) / (2f * s * s));
+    static float PolygonDistance(Vector2 p, Vector2[] poly) {
+        float d = float.MaxValue;
+        bool inside = false;
+        for (int i = 0, j = poly.Length - 1; i < poly.Length; j = i++) {
+            Vector2 a = poly[j], b = poly[i];
+            d = Mathf.Min(d, DistToSegment(p, a, b));
+            if ((b.y > p.y) != (a.y > p.y) && p.x < (a.x - b.x) * (p.y - b.y) / (a.y - b.y) + b.x) inside = !inside;
+        }
+        return inside ? -d : d;
+    }
+
+    // названия на карте: под всеми значками и зонами, чтобы не мешать
+    static void BuildMapLabels(GameObject deco) {
+        var root = new GameObject("WesterosLabels").transform;
+        root.SetParent(deco.transform, false);
+        Color ink = WithA(MapInk, 0.8f), sea = WithA(Hex(0x3E6474), 0.75f);
+
+        Label(root, "Westeros", "В Е С Т Е Р О С", new Vector2(-16.5f, -3.4f), 1.1f, WithA(MapInk, 0.55f), TextAnchor.MiddleCenter, true, OTerrain + 2);
+        Label(root, "Essos",    "Э С С О С",       new Vector2(26f, 12.5f),    1.1f, WithA(MapInk, 0.55f), TextAnchor.MiddleCenter, true, OTerrain + 2);
+        Label(root, "Wall",     "Стена",           new Vector2(-15f, 11.9f),   0.6f, ink, TextAnchor.MiddleCenter, true, OTerrain + 2);
+        Label(root, "Beyond",   "Земли Вечной Зимы", new Vector2(-15f, 16.9f), 0.55f, ink, TextAnchor.MiddleCenter, false, OTerrain + 2);
+        Label(root, "Narrow", "Узкое море", new Vector2(-1.3f, -6f), 0.7f, sea, TextAnchor.MiddleCenter, false, OTerrain + 2)
+            .transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        Label(root, "Sunset", "Закатное море", new Vector2(-30.4f, -10f), 0.7f, sea, TextAnchor.MiddleCenter, false, OTerrain + 2)
+            .transform.rotation = Quaternion.Euler(0f, 0f, 90f);
+        Label(root, "Summer", "Летнее море", new Vector2(14f, -16f), 0.7f, sea, TextAnchor.MiddleCenter, false, OTerrain + 2);
+
+        City(root, "Винтерфелл",          new Vector2(-15.5f, 6.8f));
+        City(root, "Королевская Гавань",  new Vector2(-10.2f, -5.6f));
+        City(root, "Хайгарден",           new Vector2(-21.2f, -11.4f));
+        City(root, "Солнечное Копьё",     new Vector2(-6.2f, -14.4f));
+        City(root, "Браавос",             new Vector2(4.6f, 12.6f));
+        City(root, "Пентос",              new Vector2(2.6f, 4.6f));
+        City(root, "Волантис",            new Vector2(7.2f, -8.4f));
+    }
+
+    static void City(Transform root, string name, Vector2 pos) {
+        var t = new GameObject("City_" + name).transform;
+        t.SetParent(root, false);
+        t.position = pos;
+        Circle(t, "Ring", _disc, 0.26f, MapInk, OTerrain + 1);
+        Circle(t, "Dot",  _disc, 0.16f, Hex(0xB5432F), OTerrain + 2);
+        Label(t, "Name", name, new Vector2(0f, -0.65f), 0.5f, WithA(MapInk, 0.85f), TextAnchor.MiddleCenter, false, OTerrain + 2);
+    }
 
     // --- тропы ------------------------------------------------------------------
 
@@ -530,8 +624,8 @@ public static class LevelStyler {
         }
     }
 
-    static void Label(Transform parent, string name, string text, Vector2 localPos, float height,
-                      Color color, TextAnchor anchor, bool bold = false) {
+    static TextMesh Label(Transform parent, string name, string text, Vector2 localPos, float height,
+                      Color color, TextAnchor anchor, bool bold = false, int order = OText) {
         var go = new GameObject(name);
         go.transform.SetParent(parent, false);
         go.transform.localPosition = localPos;
@@ -549,7 +643,8 @@ public static class LevelStyler {
         tm.color = color;
         var mr = go.GetComponent<MeshRenderer>();
         mr.sharedMaterial = _font.material;
-        mr.sortingOrder = OText;
+        mr.sortingOrder = order;
+        return tm;
     }
 
     // ширина строки в world units при высоте height (как её отрисует Label)
@@ -571,7 +666,7 @@ public static class LevelStyler {
         if (!AssetDatabase.IsValidFolder("Assets/Art")) AssetDatabase.CreateFolder("Assets", "Art");
         if (!AssetDatabase.IsValidFolder(ArtFolder))   AssetDatabase.CreateFolder("Assets/Art", "Presentation");
         // текстуры прошлой, «неоновой» версии оформления больше не нужны
-        foreach (var stale in new[] { "grid", "background" })
+        foreach (var stale in new[] { "grid", "background", "terrain" })
             AssetDatabase.DeleteAsset($"{ArtFolder}/{stale}.png");
 
         _disc   = MakeSprite("disc",   256, 256, 128f, Vector4.zero, (x, y) => Paint(Color.white, Disc(x, y, 0f, 0f, 1f, 256)));
@@ -594,46 +689,71 @@ public static class LevelStyler {
         _tent  = MakeSprite("pin_camp",   192, 192, 96f, Vector4.zero, (x, y) => PinIcon(x, y, Camp, TentIcon));
         _hut   = MakeSprite("pin_hut",    192, 192, 96f, Vector4.zero, (x, y) => PinIcon(x, y, Hut, HutIcon));
 
-        _terrain = MakeTerrain(d);
+        _terrain = LoadCustomMap();
+        _customMap = _terrain != null;
+        if (!_customMap) _terrain = MakeWesteros(d);
     }
 
-    // карта высот: гипсометрическая раскраска + горизонтали (каждая пятая — утолщённая)
-    static Sprite MakeTerrain(LevelFile d) {
+    // своя картинка карты: импортируем как спрайт, масштаб подберёт BuildBackground
+    static Sprite LoadCustomMap() {
+        if (!AssetDatabase.IsValidFolder(WesterosFolder)) return null;
+        foreach (var ext in new[] { "png", "jpg", "jpeg" }) {
+            string path = $"{WesterosFolder}/westeros.{ext}";
+            var imp = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (imp == null) continue;
+            if (imp.textureType != TextureImporterType.Sprite || imp.spriteImportMode != SpriteImportMode.Single
+                || imp.maxTextureSize < 4096) {
+                imp.textureType = TextureImporterType.Sprite;
+                imp.spriteImportMode = SpriteImportMode.Single;
+                imp.mipmapEnabled = false;
+                imp.maxTextureSize = 4096;
+                imp.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+        return null;
+    }
+
+    // нарисованная карта: старый пергамент, море с «рябью» у берегов, Стена и сетка параллелей
+    static Sprite MakeWesteros(LevelFile d) {
         var b = d.worldBounds;
         float w = b.xMax - b.xMin, h = b.yMax - b.yMin;
         const float ppu = 20f;
         int tw = Mathf.RoundToInt(w * ppu), th = Mathf.RoundToInt(h * ppu);
 
-        float lo = float.MaxValue, hi = float.MinValue;
-        for (int j = 0; j <= 72; j++)
-            for (int i = 0; i <= 128; i++) {
-                float v = Height(b.xMin + w * i / 128f, b.yMin + h * j / 72f);
-                lo = Mathf.Min(lo, v); hi = Mathf.Max(hi, v);
-            }
-        const int levels = 16;
-        float step = (hi - lo) / levels;
-        Color c0 = Hex(0xCFE7B2), c1 = Hex(0xE2E8B0), c2 = Hex(0xEADBB4), c3 = Hex(0xF1E9DD), c4 = Hex(0xFAF8F3);
-        Color contour = Hex(0x8C7356);
+        Color seaDeep = Hex(0x9DBFC4), seaShore = Hex(0xC4DAD6), ripple = Hex(0x6F9AA3);
+        Color land = Hex(0xEADFC0), landEdge = Hex(0xD9C79C), snow = Hex(0xEEF0EC);
+        Color coast = MapInk, wall = Hex(0xF7FBFF);
 
-        return MakeSprite("terrain", tw, th, ppu, Vector4.zero, (u, v) => {
-            float x = b.xMin + (u + 1f) * 0.5f * w, y = b.yMin + (v + 1f) * 0.5f * h;
-            float hgt = Height(x, y);
-            float t = Mathf.Clamp01((hgt - lo) / (hi - lo));
-            Color col = t < 0.35f ? Color.Lerp(c0, c1, t / 0.35f)
-                      : t < 0.65f ? Color.Lerp(c1, c2, (t - 0.35f) / 0.30f)
-                      : t < 0.88f ? Color.Lerp(c2, c3, (t - 0.65f) / 0.23f)
-                      :             Color.Lerp(c3, c4, (t - 0.88f) / 0.12f);
-            // расстояние до ближайшей горизонтали в world units ≈ |frac| · step / |∇h|
-            const float e = 0.05f;
-            float gx = (Height(x + e, y) - Height(x - e, y)) / (2f * e);
-            float gy = (Height(x, y + e) - Height(x, y - e)) / (2f * e);
-            float grad = Mathf.Max(Mathf.Sqrt(gx * gx + gy * gy), 1e-4f);
-            float q = (hgt - lo) / step;
-            float distLine = Mathf.Abs(q - Mathf.Round(q)) * step / grad;
-            bool index = Mathf.RoundToInt(q) % 5 == 0;
-            float half = index ? 0.065f : 0.035f;
-            float a = Mathf.Clamp01((half - distLine) * ppu + 0.5f) * (index ? 0.55f : 0.35f);
-            return Color.Lerp(col, contour, a);
+        return MakeSprite("westeros", tw, th, ppu, Vector4.zero, (u, v) => {
+            var p = new Vector2(b.xMin + (u + 1f) * 0.5f * w, b.yMin + (v + 1f) * 0.5f * h);
+            float sd = CoastDistance(p);
+            float grain = Mathf.PerlinNoise(p.x * 0.35f + 11f, p.y * 0.35f + 7f) - 0.5f;
+            Color col;
+            if (sd > 0f) {
+                col = Color.Lerp(seaShore, seaDeep, Mathf.SmoothStep(0f, 3.5f, sd));
+                // две-три линии «ряби» вдоль берега, как на старинных картах
+                float k = sd / 0.55f;
+                if (k < 3.5f) {
+                    float line = Mathf.Abs(k - Mathf.Round(k)) * 0.55f;
+                    float a = Mathf.Clamp01((0.03f - line) * ppu + 0.5f) * (1f - k / 3.5f) * 0.6f;
+                    if (Mathf.Round(k) >= 1f) col = Color.Lerp(col, ripple, a);
+                }
+            } else {
+                col = Color.Lerp(landEdge, land, Mathf.SmoothStep(0f, 1.2f, -sd));
+                col = Color.Lerp(col, snow, Mathf.SmoothStep(11.5f, 14.5f, p.y) * 0.8f);     // за Стеной — снег
+                // Стена — светлая полоса с тёмной кромкой
+                float dw = DistToSegment(p, WallA, WallB);
+                col = Color.Lerp(col, coast, Mathf.Clamp01((0.24f - dw) * ppu + 0.5f));
+                col = Color.Lerp(col, wall,  Mathf.Clamp01((0.15f - dw) * ppu + 0.5f));
+            }
+            col = Color.Lerp(col, Color.black, grain * 0.06f + 0.03f);
+            // береговая линия
+            col = Color.Lerp(col, coast, Mathf.Clamp01((0.06f - Mathf.Abs(sd)) * ppu + 0.5f) * 0.9f);
+            // бледная сетка параллелей и меридианов
+            float gx = Mathf.Abs(Mathf.Repeat(p.x + 4f, 8f) - 4f), gy = Mathf.Abs(Mathf.Repeat(p.y + 4f, 8f) - 4f);
+            float grid = Mathf.Clamp01((0.025f - Mathf.Min(gx, gy)) * ppu + 0.5f) * 0.12f;
+            return Color.Lerp(col, coast, grid);
         });
     }
 
