@@ -4,13 +4,15 @@
 //   • пауза / продолжить (кнопка или пробел), «Новый поход»;
 //   • текущий поход: вариант действий, ключ ситуации, пять переменных состояния, время;
 //   • ползунки Demo Energy / Dist / Weather / Supplies / Shelter — те же поля, что
-//     в инспекторе Episode Manager; следующий поход начнётся из заданной ситуации;
-//   • эталонные ситуации из методички — одной кнопкой;
+//     в инспекторе Episode Manager; применяются к идущему походу сразу (и на паузе),
+//     с них же начнётся следующий поход;
+//   • эталонные ситуации из методички — одной кнопкой, тоже сразу;
 //   • редактор ключа ситуации из пяти цифр (например 2|2|1|1|1): на паузе выберите
 //     цифры, посмотрите, что ответит таблица политики, и либо
 //       – «Решить по ключу» — путешественник принимает решение так, будто он в этой
 //         ситуации (ключ держится, пока его не сбросить), либо
-//       – «Поход из ключа» — ползунки ставятся в середины бинов и поход начинается заново.
+//       – «Ситуация из ключа» — ползунки ставятся в середины бинов, и ситуация
+//         применяется к идущему походу (путешественник переносится, если надо).
 //
 // Компонент добавляется сам (на объект с EpisodeManager), если его нет на сцене.
 // Нарисован на IMGUI: не нужны ни Canvas, ни шрифты, ни префабы.
@@ -51,7 +53,6 @@ public class SituationPanel : MonoBehaviour {
 
     int[]   _digits = { 1, 1, 1, 1, 1 };
     bool    _holdKey;
-    float   _savedTimeScale = 1f;
     Vector2 _scroll;
 
     // история исходов
@@ -84,12 +85,11 @@ public class SituationPanel : MonoBehaviour {
     void SetPaused(bool pause) {
         if (pause == Paused) return;
         if (pause) {
-            _savedTimeScale = Time.timeScale > 0f ? Time.timeScale
-                            : (manager != null ? manager.BaseTimeScale : 1f);
             Time.timeScale = 0f;
             TakeCurrentKey();                      // на паузе редактор ключа начинается с текущей ситуации
         } else {
-            Time.timeScale = _savedTimeScale > 0f ? _savedTimeScale : 1f;
+            // берём ускорение из баланса заново: его могли поменять, пока стояла пауза
+            Time.timeScale = manager != null ? manager.BaseTimeScale : 1f;
         }
     }
 
@@ -207,7 +207,7 @@ public class SituationPanel : MonoBehaviour {
     void DrawCurrent() {
         Section("Сейчас");
         if (manager.mode != RunMode.Demo) {
-            GUILayout.Label($"Режим {manager.mode}: ползунки не действуют.", _small);
+            GUILayout.Label($"Режим {manager.mode}: ползунки не действуют (в Demo применятся сразу).", _small);
             if (GUILayout.Button("Переключить в Demo", _btn)) manager.mode = RunMode.Demo;
         }
         string strat = executor != null ? executor.CurrentStrategy : "?";
@@ -272,33 +272,39 @@ public class SituationPanel : MonoBehaviour {
         }
         GUILayout.EndHorizontal();
         GUILayout.BeginHorizontal();
-        if (GUILayout.Button("Поход из ключа", _btn)) {
+        if (GUILayout.Button("Ситуация из ключа", _btn)) {
             ReleaseKey();
-            ApplyKeyToSliders();
+            ApplyKeyToSliders();                   // EpisodeManager применит ползунки к походу сразу
             manager.mode = RunMode.Demo;
-            manager.RestartEpisode();
+            if (!manager.applyDemoLive) manager.RestartEpisode();
         }
         GUI.enabled = _holdKey;
-        if (GUILayout.Button("Сбросить ключ", _btn)) { ReleaseKey(); executor?.DecideNow(true); }
+        if (GUILayout.Button("Сбросить ключ", _btn)) ReleaseKey();
         GUI.enabled = true;
         GUILayout.EndHorizontal();
         if (_holdKey && executor != null && executor.OverrideKey != k)
             GUILayout.Label($"держится ключ {executor.OverrideKey}; нажмите «Решить по ключу», чтобы заменить", _small);
     }
 
+    /// Отпустить ручной ключ; если он держался — сразу решить заново по реальной ситуации.
     void ReleaseKey() {
+        bool was = _holdKey;
         _holdKey = false;
-        if (executor != null) executor.SetOverrideKey("");
+        if (executor == null) return;
+        executor.SetOverrideKey("");
+        if (was) executor.DecideNow(true);
     }
 
     void DrawSliders() {
-        Section("Demo: старт следующего похода");
+        Section("Demo: ситуация (применяется сразу)");
         manager.demoEnergy   = Slider("Energy",   manager.demoEnergy);
         manager.demoDist     = Slider("Dist",     manager.demoDist);
         manager.demoWeather  = Slider("Weather",  manager.demoWeather);
         manager.demoSupplies = Slider("Supplies", manager.demoSupplies);
         manager.demoShelter  = Slider("Shelter",  manager.demoShelter);
-        GUILayout.Label("Ключ старта: " + (policy != null
+        if (!manager.applyDemoLive)
+            GUILayout.Label("applyDemoLive выключен: ползунки действуют только со следующего похода.", _small);
+        GUILayout.Label("Ключ по ползункам: " + (policy != null
             ? policy.StateKey(manager.demoEnergy, manager.demoDist, manager.demoWeather,
                               manager.demoSupplies, manager.demoShelter) : "?"), _small);
     }
@@ -310,7 +316,7 @@ public class SituationPanel : MonoBehaviour {
                 ReleaseKey();
                 manager.mode = RunMode.Demo;
                 manager.demoEnergy = p.e; manager.demoWeather = p.w; manager.demoSupplies = p.s;
-                manager.RestartEpisode();
+                if (!manager.applyDemoLive) manager.RestartEpisode();
             }
         }
     }
@@ -331,10 +337,13 @@ public class SituationPanel : MonoBehaviour {
     float Slider(string name, float v) {
         GUILayout.BeginHorizontal();
         GUILayout.Label(name, _small, GUILayout.Width(80));
-        v = GUILayout.HorizontalSlider(v, 0f, 1f, GUILayout.ExpandWidth(true));
+        float nv = GUILayout.HorizontalSlider(v, 0f, 1f, GUILayout.ExpandWidth(true));
+        // Округляем только то, что сдвинули рукой: иначе значение из инспектора или из ключа
+        // (середина бина) округлялось бы каждый кадр и лишний раз применялось к походу.
+        if (nv != v) v = Mathf.Round(nv * 100f) / 100f;
         GUILayout.Label(v.ToString("0.00"), _small, GUILayout.Width(36));
         GUILayout.EndHorizontal();
-        return Mathf.Round(v * 100f) / 100f;
+        return v;
     }
 
     void Bar(string name, float v) => Bar(name, v, new Color(0.75f, 0.8f, 0.9f));

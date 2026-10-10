@@ -44,15 +44,29 @@ public class AgentState : MonoBehaviour {
         ambientWeather     = ambient;
         // Сглаженные значения начинаем с мгновенных, иначе первые решения похода
         // принимаются по пустому состоянию.
+        SnapSmoothing();
+        EnergyLostThisStep = 0f;
+    }
+
+    /// Поменять непогоду посреди похода (ползунок Weather в Demo).
+    public void SetWeather(float weatherScale, float ambient) {
+        globalWeatherScale = weatherScale;
+        ambientWeather     = ambient;
+    }
+
+    /// Сбросить сглаживание: weather01 и shelter01 сразу равны значениям в текущей точке.
+    /// Нужно, когда ситуацию меняют вручную, — иначе ключ догонял бы её секунду-другую.
+    public void SnapSmoothing() {
         Vector2 p = transform.position;
         _weatherEma = RawWeatherNow(p);
         _shelterEma = LevelRegistry.Shelter(p);
-        EnergyLostThisStep = 0f;
     }
 
     float RawWeatherNow(Vector2 p) {
         if (LevelRegistry.Camp != null && LevelRegistry.Camp.Contains(p)) return 0f;   // у костра сухо и тихо
-        return Mathf.Clamp01(LevelRegistry.RawWeather(p) * globalWeatherScale + ambientWeather);
+        // на солнечной поляне стихает и фоновая непогода, а не только участки
+        float ambient = ambientWeather * (1f - LevelRegistry.SunCalm(p));
+        return Mathf.Clamp01(LevelRegistry.RawWeather(p) * globalWeatherScale + ambient);
     }
 
     void FixedUpdate() {
@@ -74,6 +88,9 @@ public class AgentState : MonoBehaviour {
         // Отдых у костра на стоянке восстанавливает силы.
         if (LevelRegistry.Camp != null && LevelRegistry.Camp.Contains(p))
             energy += LevelRegistry.Camp.energyRegenPerSecond * Time.fixedDeltaTime;
+
+        // На солнечной поляне путешественник отогревается и восстанавливает силы.
+        energy += LevelRegistry.SunRegen(p) * Time.fixedDeltaTime;
 
         energy   = Mathf.Clamp(energy,   0f, balance.energyMax);
         supplies = Mathf.Clamp(supplies, 0f, balance.suppliesMax);

@@ -23,8 +23,29 @@ public class DecisionPolicy : MonoBehaviour {
     public string[] Strategies => _file.strategies;
     public string   Method     => _file.method;
     public int      EntryCount => _index.Count;
+    public TextAsset Asset      => policyAsset;
+
+    /// Таблицу перечитали посреди игры (новый JSON или другой policyAsset) —
+    /// путешественник должен сразу решить заново.
+    public event System.Action Reloaded;
 
     void Awake() { Load(); }
+
+    // Правка в инспекторе во время игры: подменили policyAsset или настройки мягкого выбора.
+    void OnValidate() { if (Application.isPlaying && _file != null) _reloadPending = true; }
+    bool _reloadPending;
+
+    void Update() {
+        if (!_reloadPending) return;
+        _reloadPending = false;
+        Reload();
+    }
+
+    /// Перечитать таблицу и сообщить об этом (вызывается и из редактора при реимпорте JSON).
+    public void Reload() {
+        Load();
+        Reloaded?.Invoke();
+    }
 
     public void Load() {
         if (policyAsset == null) { Debug.LogError("[DecisionPolicy] не назначен policyAsset"); return; }

@@ -32,7 +32,9 @@ public class EpisodeManager : MonoBehaviour {
     public int  episodeCount = 500;               // для Benchmark
     public string policySource = "MCDA";          // пишется в лог: MCDA / PPO / FORCED
 
-    [Header("Demo: ситуация задаётся вручную")]
+    [Header("Demo: ситуация задаётся вручную (меняется на лету)")]
+    [Tooltip("Изменения ползунков сразу применяются к текущему походу, а не только к следующему.")]
+    public bool applyDemoLive = true;
     [Range(0f,1f)] public float demoEnergy   = 0.8f;
     [Range(0f,1f)] public float demoDist     = 0.85f;
     [Range(0f,1f)] public float demoWeather  = 0.5f;
@@ -52,6 +54,11 @@ public class EpisodeManager : MonoBehaviour {
     EpisodeRecord _rec;
     List<int> _spawnNodes = new List<int>();
     bool  _active;
+
+    // Значения, уже применённые к текущему походу: по ним видно, что поменялось на лету.
+    float   _liveEnergy, _liveDist, _liveWeather, _liveSupplies, _liveShelter;
+    RunMode _liveMode;
+    float   _liveTimeScale = -1f;
 
     public string LastResult { get; private set; } = "";
     public bool   IsActive => _active;
@@ -110,27 +117,13 @@ public class EpisodeManager : MonoBehaviour {
         if (useCurriculumAmbient) tWeather = Mathf.Clamp01(tWeather * 0.5f + curriculumAmbient);
 
         // 1. Узел, ближайший по (dist01, shelter01).
-        //    Вес расстояния выше: оно сильнее влияет на длительность похода.
-        int best = _spawnNodes[0]; float bestErr = float.MaxValue;
-        foreach (int i in _spawnNodes) {
-            float err = 2.0f * Sqr(graph.NodeDist01(i) - tDist)
-                      + 1.0f * Sqr(graph.NodeShelter(i) - tShelter);
-            if (err < bestErr) { bestErr = err; best = i; }
-        }
+        int best = BestSpawnNode(tDist, tShelter);
 
         // 2. Точка спавна — джиттер вокруг узла.
         Vector2 pos = graph.PositionOf(best) + RandomInCircle(rng, 1.5f);
 
         // 3. Непогода: сначала усиливаем/ослабляем участки непогоды, остаток добираем фоном.
-        float raw = LevelRegistry.RawWeather(pos);
-        float scale, ambient;
-        if (raw >= 0.05f) {
-            scale   = Mathf.Clamp(tWeather / raw, 0.30f, 2.00f);
-            ambient = Mathf.Clamp01(tWeather - raw * scale);
-        } else {
-            scale   = 1f;
-            ambient = tWeather;
-        }
+        WeatherFor(pos, tWeather, out float scale, out float ambient);
 
         // --- применяем ---------------------------------------------------------
         LevelRegistry.ResetAll();
@@ -152,9 +145,85 @@ public class EpisodeManager : MonoBehaviour {
         };
         _t0 = Time.time;
         _active = true;
+        RememberLive();
+    }
+
+    /// Узел, ближайший по (dist01, shelter01).
+    /// Вес расстояния выше: оно сильнее влияет на длительность похода.
+    int BestSpawnNode(float tDist, float tShelter) {
+        int best = _spawnNodes[0]; float bestErr = float.MaxValue;
+        foreach (int i in _spawnNodes) {
+            float err = 2.0f * Sqr(graph.NodeDist01(i) - tDist)
+                      + 1.0f * Sqr(graph.NodeShelter(i) - tShelter);
+            if (err < bestErr) { bestErr = err; best = i; }
+        }
+        return best;
+    }
+
+    static void WeatherFor(Vector2 pos, float tWeather, out float scale, out float ambient) {
+        float raw = LevelRegistry.RawWeather(pos);
+        if (raw >= 0.05f) {
+            scale   = Mathf.Clamp(tWeather / raw, 0.30f, 2.00f);
+            ambient = Mathf.Clamp01(tWeather - raw * scale);
+        } else {
+            scale   = 1f;
+            ambient = tWeather;
+        }
+    }
+
+    // --- изменения на лету ------------------------------------------------------
+
+    void RememberLive() {
+        _liveEnergy = demoEnergy; _liveDist = demoDist; _liveWeather = demoWeather;
+        _liveSupplies = demoSupplies; _liveShelter = demoShelter;
+        _liveMode = mode;
+    }
+
+    /// Ползунки Demo (из панели или из инспектора) применяются к идущему походу:
+    ///   Energy / Supplies — сразу задают силы и запасы;
+    ///   Weather           — пересчитывает усиление непогоды и фон в текущей точке;
+    ///   Dist / Shelter    — переносят путешественника в узел, подходящий под эти значения.
+    /// После этого решение принимается немедленно (без гистерезиса) — работает и на паузе.
+    void ApplyLiveChanges() {
+        float ts = BaseTimeScale;                       // ускорение прогона — тоже на лету
+        if (ts != _liveTimeScale) {
+            if (_liveTimeScale > 0f && Time.timeScale > 0f) Time.timeScale = ts;   // на паузе не снимаем её
+            _liveTimeScale = ts;
+        }
+
+        if (!_active || !applyDemoLive || mode != RunMode.Demo) { _liveMode = mode; return; }
+
+        bool all      = _liveMode != RunMode.Demo;     // только что переключились в Demo
+        bool energy   = all || demoEnergy   != _liveEnergy;
+        bool supplies = all || demoSupplies != _liveSupplies;
+        bool moved    = all || demoDist     != _liveDist || demoShelter != _liveShelter;
+        bool weather  = all || moved || demoWeather != _liveWeather;
+        if (!energy && !supplies && !weather) return;
+
+        if (energy)   state.energy   = demoEnergy   * balance.energyMax;
+        if (supplies) state.supplies = demoSupplies * balance.suppliesMax;
+
+        int node = moved ? BestSpawnNode(demoDist, demoShelter) : -1;
+        if (moved && node != graph.NearestNode(state.transform.position)) {   // тот же узел — не дёргаем
+            motor.Stop();
+            state.transform.position = graph.PositionOf(node);
+            Physics2D.SyncTransforms();                 // мотор читает позицию из Rigidbody2D
+        }
+
+        if (weather) {
+            float tWeather = demoWeather;
+            if (useCurriculumAmbient) tWeather = Mathf.Clamp01(tWeather * 0.5f + curriculumAmbient);
+            WeatherFor(state.transform.position, tWeather, out float scale, out float ambient);
+            state.SetWeather(scale, ambient);
+            state.SnapSmoothing();                      // ключ ситуации меняется сразу, без EMA
+        }
+
+        RememberLive();
+        executor.DecideNow(true);
     }
 
     void Update() {
+        ApplyLiveChanges();
         if (!_active) return;
 
         Vector2 p = state.transform.position;

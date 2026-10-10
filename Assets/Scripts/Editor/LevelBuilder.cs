@@ -49,6 +49,7 @@ public static class LevelBuilder {
         BuildShelterZones(root, data, circle);
         BuildSupplyPoints(root, data, circle);
         BuildViewpoints(root, data, circle);
+        BuildSunZones(root, data, circle);
         BuildSpecialZones(root, data, circle);
         BuildRouteLines(root, data);
         BuildBounds(root, data);
@@ -126,6 +127,22 @@ public static class LevelBuilder {
             var col = go.AddComponent<CircleCollider2D>();
             col.isTrigger = true; col.radius = 1.5f;
             AddCircleVisual(go, circle, 1.1f, new Color(0.55f, 0.36f, 0.96f, 0.95f), 2);
+        }
+    }
+
+    static void BuildSunZones(GameObject root, LevelFile d, Sprite circle) {
+        if (d.sunZones == null || d.sunZones.Length == 0) return;
+        var parent = Child(root, "SunZones");
+        foreach (var z in d.sunZones) {
+            var go = new GameObject(z.id);
+            go.transform.SetParent(parent.transform);
+            go.transform.position = new Vector3(z.x, z.y, 0f);
+            var c = go.AddComponent<SunZone>();
+            c.id = z.id; c.radius = z.radius;
+            if (z.core > 0f)        c.core = z.core;
+            if (z.strength > 0f)    c.strength = z.strength;
+            if (z.energyRegen > 0f) c.energyRegenPerSecond = z.energyRegen;
+            AddCircleVisual(go, circle, z.radius, new Color(1.00f, 0.82f, 0.20f, 0.25f), -1);  // золотистая поляна
         }
     }
 

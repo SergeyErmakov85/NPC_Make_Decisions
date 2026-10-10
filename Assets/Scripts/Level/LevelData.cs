@@ -12,6 +12,7 @@ namespace CorridorRisk {
 [Serializable] public class ShelterDef   { public string id; public float x, y, radius, density; }        // участок укрытий
 [Serializable] public class SupplyDef    { public string id; public float x, y; public string kind; public float amount; } // родник/ягодник
 [Serializable] public class ViewpointDef { public string id; public float x, y; }                         // смотровая точка
+[Serializable] public class SunDef       { public string id; public float x, y, radius, core, strength, energyRegen; } // солнечная поляна
 [Serializable] public class CircleDef    { public string id; public float x, y, radius; }                 // стоянка или приют
 [Serializable] public class BoundsDef    { public float xMin, xMax, yMin, yMax; }
 [Serializable] public class BinsDef      { public float[] dist; public float[] shelter; public float[] weather; }
@@ -29,6 +30,7 @@ public class LevelFile {
     public ShelterDef[]   shelterZones;
     public SupplyDef[]    supplyPoints;
     public ViewpointDef[] viewpoints;
+    public SunDef[]       sunZones;       // необязательно: солнечные поляны
     public CircleDef      campZone;
     public CircleDef      hutZone;
     public string[]       spawnNodes;

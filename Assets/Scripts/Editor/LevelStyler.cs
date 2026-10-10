@@ -8,7 +8,9 @@
 //   WeatherZone   → участки непогоды (облако с дождём, сила = intensity);
 //   ShelterZone   → лес (деревья, плотность = density);
 //   SupplyPoint   → родники (запас воды и еды) / ягодники (силы);
-//   Viewpoint     → смотровые точки;  CampZone → стоянка;  HutZone → горный приют.
+//   Viewpoint     → смотровые точки;  CampZone → стоянка;  HutZone → горный приют;
+//   SunZone       → солнечные поляны (золотое сияние и солнце): непогода стихает, силы растут.
+// Солнечные поляны, если их ещё нет на сцене, создаются из раздела sunZones того же JSON.
 // Имена объектов и компонентов не меняются: код симуляции их не замечает.
 //
 // Скрипт идемпотентный: перед применением удаляет всё, что создал раньше,
@@ -37,29 +39,29 @@ public static class LevelStyler {
 
     // --- палитра ------------------------------------------------------------------
 
-    static readonly Color Paper      = Hex(0xEEF1E8);   // поле вокруг карты
-    static readonly Color Frame      = Hex(0x6E5C47);   // рамка карты
-    static readonly Color Ink        = Hex(0x1F2A37);   // основной текст
-    static readonly Color Weather    = Hex(0x4C6E91);   // непогода
-    static readonly Color Forest     = Hex(0x2E7D46);   // лес
-    static readonly Color Spring     = Hex(0x1E8FD6);   // родник
-    static readonly Color Berry      = Hex(0xC2185B);   // ягодник
-    static readonly Color View       = Hex(0x7E57C2);   // смотровая точка
-    static readonly Color Camp       = Hex(0xF57C00);   // стоянка
-    static readonly Color Hut        = Hex(0xB5432F);   // приют
-    static readonly Color RouteA     = Hex(0x1565C0);   // защищённая тропа
-    static readonly Color RouteB     = Hex(0xEF8A17);   // мимо родников
-    static readonly Color RouteC     = Hex(0xD62839);   // напрямик
-    static readonly Color MapInk     = Hex(0x5A4630);   // надписи и берега карты Вестероса
+    static readonly Color Paper      = Hex(0xF3EFD9);   // поле вокруг карты
+    static readonly Color Frame      = Hex(0x5B3F24);   // рамка карты
+    static readonly Color Ink        = Hex(0x1A2433);   // основной текст
+    static readonly Color Weather    = Hex(0x34497E);   // непогода — грозовая синева
+    static readonly Color Forest     = Hex(0x146B2E);   // лес
+    static readonly Color Spring     = Hex(0x0A8EE8);   // родник
+    static readonly Color Berry      = Hex(0xE0115F);   // ягодник
+    static readonly Color View       = Hex(0x8E44EC);   // смотровая точка
+    static readonly Color Camp       = Hex(0xFF7A00);   // стоянка
+    static readonly Color Hut        = Hex(0xD03A1E);   // приют
+    static readonly Color RouteA     = Hex(0x0D5BDB);   // защищённая тропа
+    static readonly Color RouteB     = Hex(0xFF8A00);   // мимо родников
+    static readonly Color RouteC     = Hex(0xEE1C3A);   // напрямик
+    static readonly Color MapInk     = Hex(0x4A3220);   // надписи и берега карты Вестероса
 
     // порядок отрисовки (sortingOrder)
     const int OPaper = -100, OFrame = -91, OTerrain = -90,
-              OForest = -60, OTree = -55, OWeather = -50, OWeatherRing = -49, OCloud = -44,
+              OForest = -60, OTree = -55, OWeather = -50, OWeatherRing = -49, OSun = -47, OCloud = -44,
               OCamp = -40, ORouteCase = -30, ORoute = -29, OWaypoint = -20,
               OPinShadow = 4, OPin = 5, OBadge = 15, OPill = 18, OText = 20;
 
     static Sprite _disc, _soft, _rrect, _square, _terrain,
-                  _tree, _cloud, _drop, _berry, _view, _tent, _hut;
+                  _tree, _cloud, _sun, _drop, _berry, _view, _tent, _hut;
     static Material _unlit;
     static Font _font;
     static bool _customMap;      // фон — картинка из WesterosFolder, а не нарисованная карта
@@ -91,6 +93,8 @@ public static class LevelStyler {
         StyleRoutes(level, deco, data);            // до леса: деревья обходят тропы
         StyleForest(level, data);
         StyleWeather(level);
+        SyncSunZones(level, data);
+        StyleSun(level);
         StyleCampAndHut(level);
         StyleWaypoints(level);
         StyleViewpoints(level);
@@ -203,7 +207,7 @@ public static class LevelStyler {
     static void BuildMapLabels(GameObject deco) {
         var root = new GameObject("WesterosLabels").transform;
         root.SetParent(deco.transform, false);
-        Color ink = WithA(MapInk, 0.8f), sea = WithA(Hex(0x3E6474), 0.75f);
+        Color ink = WithA(MapInk, 0.8f), sea = WithA(Hex(0xEAF7FF), 0.9f);
 
         Label(root, "Westeros", "В Е С Т Е Р О С", new Vector2(-16.5f, -3.4f), 1.1f, WithA(MapInk, 0.55f), TextAnchor.MiddleCenter, true, OTerrain + 2);
         Label(root, "Essos",    "Э С С О С",       new Vector2(26f, 12.5f),    1.1f, WithA(MapInk, 0.55f), TextAnchor.MiddleCenter, true, OTerrain + 2);
@@ -296,7 +300,7 @@ public static class LevelStyler {
 
         foreach (var z in level.GetComponentsInChildren<ShelterZone>()) {
             ClearVisuals(z.transform);
-            Circle(z.transform, "Visual", _soft, z.radius * 1.15f, WithA(Forest, 0.25f + 0.35f * z.density), OForest);
+            Circle(z.transform, "Visual", _soft, z.radius * 1.15f, WithA(Forest, 0.35f + 0.45f * z.density), OForest);
 
             // деревья: число пропорционально плотности и площади, раскладка детерминированная
             var rng = new System.Random(StableHash(z.id));
@@ -325,7 +329,7 @@ public static class LevelStyler {
     static void StyleWeather(GameObject level) {
         foreach (var z in level.GetComponentsInChildren<WeatherZone>()) {
             ClearVisuals(z.transform);
-            Circle(z.transform, "Visual", _soft, z.rOuter, WithA(Weather, 0.22f + 0.50f * z.intensity), OWeather);
+            Circle(z.transform, "Visual", _soft, z.rOuter, WithA(Weather, 0.25f + 0.55f * z.intensity), OWeather);
             Ring(z.transform, DecoPrefix + "Core", z.rInner, 0.09f, WithA(Weather, 0.45f + 0.4f * z.intensity), OWeatherRing, dashed: true);
             // облако: чем сильнее непогода, тем оно больше и темнее
             float s = 1.4f + 1.6f * z.intensity;
@@ -333,6 +337,61 @@ public static class LevelStyler {
             var cloud = Circle(z.transform, DecoPrefix + "Cloud", _cloud, s, new Color(shade, shade, Mathf.Min(1f, shade + 0.03f), 0.95f), OCloud);
             cloud.transform.localPosition = CloudOffset(level, z, s);
         }
+    }
+
+    // --- солнечные поляны ---------------------------------------------------------
+
+    // Поляны — часть уровня, а не оформления. Если их ещё нет (уровень построен до того,
+    // как они появились в JSON), создаём из раздела sunZones, не перестраивая весь уровень.
+    static void SyncSunZones(GameObject level, LevelFile d) {
+        if (d.sunZones == null || d.sunZones.Length == 0) return;
+        var parent = level.transform.Find("SunZones");
+        if (parent == null) {
+            parent = new GameObject("SunZones").transform;
+            parent.SetParent(level.transform, false);
+            Undo.RegisterCreatedObjectUndo(parent.gameObject, "Sun zones");
+        }
+        foreach (var z in d.sunZones) {
+            var t = parent.Find(z.id);
+            if (t == null) {
+                t = new GameObject(z.id).transform;
+                t.SetParent(parent, false);
+                t.gameObject.AddComponent<SunZone>();
+            }
+            t.position = new Vector3(z.x, z.y, 0f);
+            var c = t.GetComponent<SunZone>();
+            c.id = z.id; c.radius = z.radius;
+            if (z.core > 0f)        c.core = z.core;
+            if (z.strength > 0f)    c.strength = z.strength;
+            if (z.energyRegen > 0f) c.energyRegenPerSecond = z.energyRegen;
+        }
+    }
+
+    static void StyleSun(GameObject level) {
+        foreach (var z in level.GetComponentsInChildren<SunZone>()) {
+            ClearVisuals(z.transform);
+            Circle(z.transform, "Visual", _soft, z.radius * 1.2f, WithA(Hex(0xFFE066), 0.9f), OSun);
+            Circle(z.transform, DecoPrefix + "Core", _soft, z.radius * z.core, WithA(Hex(0xFFF8D0), 0.9f), OSun + 1);
+            Ring(z.transform, DecoPrefix + "Ring", z.radius, 0.1f, WithA(Hex(0xF5A300), 0.9f), OSun + 2, dashed: true);
+            var sun = Circle(z.transform, DecoPrefix + "SunIcon", _sun, 1.5f, Color.white, OCloud);
+            sun.transform.localPosition = SunOffset(level, z);
+        }
+    }
+
+    // солнце ставим туда, где нет значков и троп
+    static Vector3 SunOffset(GameObject level, SunZone z) {
+        var pins = new List<Vector2>();
+        foreach (var p in level.GetComponentsInChildren<SupplyPoint>()) pins.Add(p.transform.position);
+        foreach (var p in level.GetComponentsInChildren<Viewpoint>())   pins.Add(p.transform.position);
+        Vector2 c = z.transform.position;
+        float k = Mathf.Min(1f, z.radius / 4f) * 0.8f;
+        foreach (var o in CloudSpots) {
+            var p = c + o * k;
+            if (_clip != null && !_clip.Value.Contains(p + Vector2.up * 1.5f)) continue;
+            if (Near(p, pins, 2.6f) || NearRoute(p, 1.3f)) continue;
+            return o * k;
+        }
+        return Vector3.zero;
     }
 
     // облако ставим в первую свободную точку внутри зоны: не на значках и не поверх троп
@@ -465,6 +524,10 @@ public static class LevelStyler {
             Circle(t, "Fill", _soft, 0.75f, WithA(Weather, 0.7f), OBadge);
             Circle(t, "Cloud", _cloud, 0.6f, Color.white, OBadge + 1);
         });
+        x = LegendItem(root, x, y, "солнце — отдых", t => {
+            Circle(t, "Fill", _soft, 0.75f, WithA(Hex(0xFFE066), 0.9f), OBadge);
+            Circle(t, "Sun", _sun, 0.6f, Color.white, OBadge + 1);
+        });
         x = LegendItem(root, x, y, "лес — укрытие", t => Circle(t, "Tree", _tree, 0.6f, Color.white, OBadge));
         x = LegendItem(root, x, y, "родник — вода", t => Circle(t, "Pin", _drop, 0.55f, Color.white, OBadge));
         x = LegendItem(root, x, y, "ягодник — силы", t => Circle(t, "Pin", _berry, 0.55f, Color.white, OBadge));
@@ -513,6 +576,13 @@ public static class LevelStyler {
         }
         // на светлой карте bloom «пересвечивает» всё подряд — оставляем только мягкую виньетку
         if (profile.Has<Bloom>()) profile.Remove<Bloom>();
+        // в профиле могли остаться «пустые» ссылки на удалённые эффекты — убираем
+        profile.components.RemoveAll(c => c == null);
+        // сочные краски: насыщенность и немного контраста (панель IMGUI это не затрагивает)
+        if (!profile.TryGet(out ColorAdjustments grade)) grade = profile.Add<ColorAdjustments>(true);
+        grade.saturation.Override(30f);
+        grade.contrast.Override(12f);
+        grade.postExposure.Override(0.1f);
         if (!profile.TryGet(out Vignette vignette)) vignette = profile.Add<Vignette>(true);
         vignette.intensity.Override(0.16f);
         vignette.smoothness.Override(0.6f);
@@ -683,6 +753,7 @@ public static class LevelStyler {
 
         _tree  = MakeSprite("tree",  128, 128, 64f,  Vector4.zero, TreeIcon);
         _cloud = MakeSprite("cloud", 256, 256, 128f, Vector4.zero, CloudIcon);
+        _sun   = MakeSprite("sun",   256, 256, 128f, Vector4.zero, SunIcon);
         _drop  = MakeSprite("pin_spring", 192, 192, 96f, Vector4.zero, (x, y) => PinIcon(x, y, Spring, DropIcon));
         _berry = MakeSprite("pin_berry",  192, 192, 96f, Vector4.zero, (x, y) => PinIcon(x, y, Berry, BerryIcon));
         _view  = MakeSprite("pin_view",   192, 192, 96f, Vector4.zero, (x, y) => PinIcon(x, y, View, ViewIcon));
@@ -714,15 +785,17 @@ public static class LevelStyler {
         return null;
     }
 
-    // нарисованная карта: старый пергамент, море с «рябью» у берегов, Стена и сетка параллелей
+    // нарисованная карта: зелёные луга Вестероса, золотые степи Эссоса, лазурное море
+    // с «рябью» у берегов, песчаные пляжи, снега за Стеной и сетка параллелей
     static Sprite MakeWesteros(LevelFile d) {
         var b = d.worldBounds;
         float w = b.xMax - b.xMin, h = b.yMax - b.yMin;
         const float ppu = 20f;
         int tw = Mathf.RoundToInt(w * ppu), th = Mathf.RoundToInt(h * ppu);
 
-        Color seaDeep = Hex(0x9DBFC4), seaShore = Hex(0xC4DAD6), ripple = Hex(0x6F9AA3);
-        Color land = Hex(0xEADFC0), landEdge = Hex(0xD9C79C), snow = Hex(0xEEF0EC);
+        Color seaDeep = Hex(0x1C7FC4), seaShore = Hex(0x5CCBE6), ripple = Hex(0x0F5E9C);
+        Color meadow = Hex(0x8FD14F), meadowDark = Hex(0x4FAE3A), steppe = Hex(0xF2C94C);
+        Color landEdge = Hex(0xF7DE8E), snow = Hex(0xF2F8FF);
         Color coast = MapInk, wall = Hex(0xF7FBFF);
 
         return MakeSprite("westeros", tw, th, ppu, Vector4.zero, (u, v) => {
@@ -731,7 +804,7 @@ public static class LevelStyler {
             float grain = Mathf.PerlinNoise(p.x * 0.35f + 11f, p.y * 0.35f + 7f) - 0.5f;
             Color col;
             if (sd > 0f) {
-                col = Color.Lerp(seaShore, seaDeep, Mathf.SmoothStep(0f, 3.5f, sd));
+                col = Color.Lerp(seaShore, seaDeep, Smooth(0f, 3.5f, sd));
                 // две-три линии «ряби» вдоль берега, как на старинных картах
                 float k = sd / 0.55f;
                 if (k < 3.5f) {
@@ -740,19 +813,23 @@ public static class LevelStyler {
                     if (Mathf.Round(k) >= 1f) col = Color.Lerp(col, ripple, a);
                 }
             } else {
-                col = Color.Lerp(landEdge, land, Mathf.SmoothStep(0f, 1.2f, -sd));
-                col = Color.Lerp(col, snow, Mathf.SmoothStep(11.5f, 14.5f, p.y) * 0.8f);     // за Стеной — снег
+                // луга пятнами: светлые и тёмные поляны; к востоку (Эссос) — золотые степи
+                float patch = Mathf.PerlinNoise(p.x * 0.12f + 3f, p.y * 0.12f + 5f);
+                Color land = Color.Lerp(meadowDark, meadow, Smooth(0.3f, 0.7f, patch));
+                land = Color.Lerp(land, steppe, Smooth(4f, 14f, p.x) * 0.75f);
+                col = Color.Lerp(landEdge, land, Smooth(0f, 1.2f, -sd));
+                col = Color.Lerp(col, snow, Smooth(11.5f, 14.5f, p.y) * 0.8f);     // за Стеной — снег
                 // Стена — светлая полоса с тёмной кромкой
                 float dw = DistToSegment(p, WallA, WallB);
                 col = Color.Lerp(col, coast, Mathf.Clamp01((0.24f - dw) * ppu + 0.5f));
                 col = Color.Lerp(col, wall,  Mathf.Clamp01((0.15f - dw) * ppu + 0.5f));
             }
-            col = Color.Lerp(col, Color.black, grain * 0.06f + 0.03f);
+            col = Color.Lerp(col, Color.black, grain * 0.05f + 0.02f);
             // береговая линия
             col = Color.Lerp(col, coast, Mathf.Clamp01((0.06f - Mathf.Abs(sd)) * ppu + 0.5f) * 0.9f);
             // бледная сетка параллелей и меридианов
             float gx = Mathf.Abs(Mathf.Repeat(p.x + 4f, 8f) - 4f), gy = Mathf.Abs(Mathf.Repeat(p.y + 4f, 8f) - 4f);
-            float grid = Mathf.Clamp01((0.025f - Mathf.Min(gx, gy)) * ppu + 0.5f) * 0.12f;
+            float grid = Mathf.Clamp01((0.025f - Mathf.Min(gx, gy)) * ppu + 0.5f) * 0.08f;
             return Color.Lerp(col, coast, grid);
         });
     }
@@ -825,9 +902,9 @@ public static class LevelStyler {
     static Color TreeIcon(float x, float y) {
         Color c = Color.clear;
         c = Over(c, new Color(0.1f, 0.2f, 0.1f, 0.3f), Disc(x, y, 0.12f, -0.12f, 0.85f, 128)); // тень
-        c = Over(c, Hex(0x2E7D32), Disc(x, y, 0f, 0f, 0.82f, 128));
-        c = Over(c, Hex(0x43A047), Disc(x, y, -0.18f, 0.18f, 0.55f, 128));
-        c = Over(c, Hex(0x66BB6A), Disc(x, y, -0.3f, 0.32f, 0.25f, 128));
+        c = Over(c, Hex(0x1B7A2B), Disc(x, y, 0f, 0f, 0.82f, 128));
+        c = Over(c, Hex(0x2EAA3E), Disc(x, y, -0.18f, 0.18f, 0.55f, 128));
+        c = Over(c, Hex(0x7EE07A), Disc(x, y, -0.3f, 0.32f, 0.25f, 128));
         return c;
     }
 
@@ -844,6 +921,21 @@ public static class LevelStyler {
                        Mathf.Max(Disc(x, y, 0.5f, 0.18f, 0.27f, 256), Rect01(x, y, -0.73f, -0.05f, 0.75f, 0.2f)));
         c = Over(c, Hex(0x5A7896), body);           // контур
         c = Over(c, Hex(0xF4F7FA), bodyIn);         // заливка
+        return c;
+    }
+
+    static Color SunIcon(float x, float y) {
+        Color c = Color.clear;
+        // лучи — двенадцать коротких отрезков вокруг диска
+        for (int k = 0; k < 12; k++) {
+            float a = k * Mathf.PI / 6f;
+            var dir = new Vector2(Mathf.Cos(a), Mathf.Sin(a));
+            float len = k % 2 == 0 ? 0.95f : 0.8f;
+            c = Over(c, Hex(0xFF9800), Segment(x, y, dir * 0.62f, dir * len, 0.06f, 256));
+        }
+        c = Over(c, Hex(0xF57C00), Disc(x, y, 0f, 0f, 0.5f, 256));            // кайма
+        c = Over(c, Hex(0xFFC93C), Disc(x, y, 0f, 0f, 0.44f, 256));           // диск
+        c = Over(c, Hex(0xFFF3B0), Disc(x, y, -0.14f, 0.14f, 0.16f, 256));    // блик
         return c;
     }
 
@@ -933,6 +1025,13 @@ public static class LevelStyler {
         if (guids.Length == 0) return null;
         var json = AssetDatabase.LoadAssetAtPath<TextAsset>(AssetDatabase.GUIDToAssetPath(guids[0]));
         return json != null ? JsonUtility.FromJson<LevelFile>(json.text) : null;
+    }
+
+    // «гладкая ступенька» как smoothstep в шейдерах: 0 при x <= e0, 1 при x >= e1.
+    // Mathf.SmoothStep — это другое: интерполяция МЕЖДУ e0 и e1 по параметру x.
+    static float Smooth(float e0, float e1, float x) {
+        float t = Mathf.Clamp01((x - e0) / (e1 - e0));
+        return t * t * (3f - 2f * t);
     }
 
     static Color WithA(Color c, float a) => new Color(c.r, c.g, c.b, Mathf.Clamp01(a));

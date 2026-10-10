@@ -42,22 +42,39 @@ public class StrategyExecutor : MonoBehaviour {
     /// политика опрашивается по нему, а не по реальному состоянию путешественника.
     public string OverrideKey     { get; private set; } = "";
 
+    // Коэффициенты стоимости ребра (kWeather, kShelter) и множители скорости —
+    // таблица из §6.2 спецификации. Их можно править в инспекторе прямо во время игры:
+    // путь пересчитывается сразу.
+    [System.Serializable]
+    public struct Profile { public string strategy; public PathWeights w; public float speed; }
+
+    [Header("Веса пути по вариантам действий (меняются на лету)")]
+    [SerializeField] Profile[] profiles = {
+        new Profile { strategy = "DIRECT",    w = new PathWeights(0.0f, 0.0f), speed = 1.00f },
+        new Profile { strategy = "SHELTERED", w = new PathWeights(2.5f, 1.2f), speed = 0.55f },
+        new Profile { strategy = "SURVEY",    w = new PathWeights(1.5f, 0.8f), speed = 0.75f },
+        new Profile { strategy = "GATHER",    w = new PathWeights(1.8f, 0.8f), speed = 0.80f },
+        new Profile { strategy = "WAIT",      w = new PathWeights(3.0f, 1.5f), speed = 0.35f },
+        new Profile { strategy = "RETURN",    w = new PathWeights(3.5f, 1.0f), speed = 0.95f },
+    };
+
     float _timer;
     bool  _running;
     bool  _forceNext;
+    bool  _settingsChanged;           // в инспекторе поменяли веса или forcedStrategy
 
-    // Коэффициенты стоимости ребра (kWeather, kShelter) и множители скорости —
-// таблица из §6.2 спецификации.
-    struct Profile { public PathWeights w; public float speed; }
+    // Правка в инспекторе во время игры. Само решение принимаем в Update, а не здесь:
+    // OnValidate вызывается посреди сериализации, трогать из него сцену нельзя.
+    void OnValidate() { if (Application.isPlaying) _settingsChanged = true; }
 
-    static readonly Dictionary<string, Profile> Profiles = new Dictionary<string, Profile> {
-        { "DIRECT",    new Profile { w = new PathWeights(0.0f, 0.0f), speed = 1.00f } },
-        { "SHELTERED", new Profile { w = new PathWeights(2.5f, 1.2f), speed = 0.55f } },
-        { "SURVEY",    new Profile { w = new PathWeights(1.5f, 0.8f), speed = 0.75f } },
-        { "GATHER",    new Profile { w = new PathWeights(1.8f, 0.8f), speed = 0.80f } },
-        { "WAIT",      new Profile { w = new PathWeights(3.0f, 1.5f), speed = 0.35f } },
-        { "RETURN",    new Profile { w = new PathWeights(3.5f, 1.0f), speed = 0.95f } },
-    };
+    void OnEnable()  { if (policy != null) policy.Reloaded += OnPolicyReloaded; }
+    void OnDisable() { if (policy != null) policy.Reloaded -= OnPolicyReloaded; }
+    void OnPolicyReloaded() { _settingsChanged = true; }
+
+    bool TryGetProfile(string strategy, out Profile p) {
+        foreach (var x in profiles) if (x.strategy == strategy) { p = x; return true; }
+        p = default; return false;
+    }
 
     public void BeginEpisode() {
         _running = true;
@@ -91,6 +108,11 @@ public class StrategyExecutor : MonoBehaviour {
     }
 
     void Update() {
+        if (_settingsChanged) {                       // работает и на паузе
+            _settingsChanged = false;
+            if (_running && !externalControl) { DecideNow(true); return; }
+            if (_running) Retarget();
+        }
         if (!_running || externalControl) return;
         _timer -= Time.deltaTime;
         if (_timer > 0f) return;
@@ -152,8 +174,8 @@ public class StrategyExecutor : MonoBehaviour {
     }
 
     void Retarget() {
-        var prof = Profiles.TryGetValue(CurrentStrategy, out var p)
-                 ? p : Profiles["WAIT"];
+        if (!TryGetProfile(CurrentStrategy, out var prof) && !TryGetProfile("WAIT", out prof))
+            prof = new Profile { strategy = "WAIT", w = new PathWeights(3.0f, 1.5f), speed = 0.35f };
         int target = TargetNodeFor(CurrentStrategy);
 
         if (CurrentStrategy == "WAIT" && target == graph.NearestNode(transform.position)) {

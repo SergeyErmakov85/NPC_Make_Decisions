@@ -12,6 +12,7 @@ namespace CorridorRisk {
 
 /// Коэффициенты стоимости ребра для конкретного варианта действий:
 /// kWeather — насколько вариант избегает непогоды, kShelter — насколько тянется к укрытиям.
+[System.Serializable]
 public struct PathWeights {
     public float kWeather;
     public float kShelter;
